@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriShift OS | Digital Stubble Logistics & Fleet Management System</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest: {
+              DEFAULT: '#1b4332',
+              dark: '#081c15',
+              light: '#2d6a4f'
+            },
+            sage: {
+              DEFAULT: '#2d6a4f',
+              light: '#52b788',
+              pale: '#d8f3dc'
+            },
+            cream: {
+              DEFAULT: '#f4f6f0',
+              dark: '#e8ece0'
+            },
+            amber: {
+              DEFAULT: '#d4a373',
+              dark: '#b45309',
+              gold: '#d97706',
+              light: '#fef3c7'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- FontAwesome v6 CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <style>
+    body {
+      background-color: #f4f6f0;
+      color: #1b4332;
+    }
+    input[type=range] {
+      accent-color: #2d6a4f;
+    }
+    .agri-card {
+      background: #ffffff;
+      border: 1px solid rgba(45, 106, 79, 0.15);
+      border-radius: 1rem;
+      box-shadow: 0 4px 15px -2px rgba(27, 67, 50, 0.05);
+      transition: all 0.2s ease-in-out;
+    }
+    .agri-card:hover {
+      box-shadow: 0 8px 25px -4px rgba(27, 67, 50, 0.1);
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-[#52b788] selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- TOP STATUS & SCOPE COMPLIANCE BAR         -->
+  <!-- ========================================== -->
+  <header class="bg-[#081c15] text-gray-300 text-xs py-2 px-4 border-b border-[#1b4332] sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="bg-[#d97706] text-black font-extrabold px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">
+          <i class="fa-solid fa-microchip mr-1"></i> 100% DIGITAL LOGISTICS
+        </span>
+        <span class="text-gray-300 hidden sm:inline">
+          GPS Field Geo-Tracking • 10-Day Sowing Routing • Super Seeder Pooling • Industrial Off-Take
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <div id="api-status-pill" class="flex items-center space-x-1.5 bg-[#1b4332] px-2.5 py-0.5 rounded-full border border-[#2d6a4f] text-[11px]">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="api-status-text" class="text-emerald-200 font-mono">Checking API...</span>
+        </div>
+        <span class="text-gray-500">|</span>
+        <!-- Current Active User Session Pill -->
+        <div id="session-user-badge" class="flex items-center space-x-2 bg-[#2d6a4f]/40 px-3 py-1 rounded-full border border-[#52b788]/30">
+          <i id="session-role-icon" class="fa-solid fa-wheat-awn text-amber-300"></i>
+          <span id="session-user-name" class="font-bold text-white">Harjit Singh (Farmer)</span>
+          <button onclick="openAuthModal()" class="text-[10px] text-amber-300 hover:text-white underline ml-1">Switch Role</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- MAIN NAVBAR & ROLE TABS                    -->
+  <!-- ========================================== -->
+  <nav class="bg-[#1b4332] text-white shadow-md border-b border-[#2d6a4f]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('tab-farmer')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#52b788] to-[#2d6a4f] flex items-center justify-center shadow-lg text-white text-lg">
+            <i class="fa-solid fa-seedling"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xl font-black tracking-tight text-white">AgriShift <span class="text-[#52b788]">OS</span></span>
+              <span class="bg-[#2d6a4f] text-[#d8f3dc] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#52b788]/30">Digital Fleet v2.0</span>
+            </div>
+            <p class="text-[11px] text-emerald-200/80 -mt-0.5">Paddy Residue & Soil Recovery Management System</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex space-x-1 sm:space-x-2">
+          <!-- Tab 1: Farmer Portal -->
+          <button
+            id="btn-tab-farmer"
+            onclick="switchTab('tab-farmer')"
+            class="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-[#2d6a4f] text-white shadow-inner border border-[#52b788]/40"
+          >
+            <i class="fa-solid fa-wheat-awn text-[#52b788]"></i>
+            <span>Farmer Portal</span>
+          </button>
+
+          <!-- Tab 2: Machinery Rental Hub (NEW OPERATOR TAB) -->
+          <button
+            id="btn-tab-operator"
+            onclick="switchTab('tab-operator')"
+            class="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-emerald-100 hover:bg-[#2d6a4f]/50 hover:text-white"
+          >
+            <i class="fa-solid fa-tractor text-amber-300"></i>
+            <span>Machinery Rental Hub</span>
+          </button>
+
+          <!-- Tab 3: System Feasibility & Agronomics -->
+          <button
+            id="btn-tab-benchmarks"
+            onclick="switchTab('tab-benchmarks')"
+            class="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-emerald-100 hover:bg-[#2d6a4f]/50 hover:text-white"
+          >
+            <i class="fa-solid fa-chart-pie text-emerald-300"></i>
+            <span class="hidden md:inline">Feasibility & Benchmarks</span>
+            <span class="md:hidden">Benchmarks</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========================================== -->
+  <!-- MAIN APP CONTAINER                         -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: FARMER PORTAL                                                -->
+    <!-- =================================================================== -->
+    <div id="tab-farmer" class="space-y-6">
+
+      <!-- HERO BANNER -->
+      <div class="bg-gradient-to-r from-[#1b4332] via-[#2d6a4f] to-[#1b4332] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#52b788]/20 relative overflow-hidden">
+        <div class="max-w-3xl relative z-10">
+          <div class="inline-flex items-center space-x-2 bg-emerald-950/70 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold text-emerald-200 mb-3">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Smallholder In-Situ Sowing & B2B Off-Take Control</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-black tracking-tight leading-snug">
+            Digital Stubble Routing & <br class="hidden sm:inline" />
+            <span class="text-[#52b788]">Live Field Machinery Tracking</span>
+          </h1>
+          <p className="mt-2 text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
+            Eliminating open-field fires through algorithmic machinery clustering: Grouping smallholder plots into contiguous 30+ acre route clusters cuts machine transit waste by 40% and reduces custom hiring rental fees from ₹2,000/acre to ₹1,200/acre.
+          </p>
+        </div>
+
+        <!-- Quick Summary Ribbon -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-emerald-700/60 text-center">
+          <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+            <div class="text-xl sm:text-2xl font-black text-amber-300">40%</div>
+            <div class="text-[10px] sm:text-[11px] text-emerald-200 uppercase font-semibold">Tractor Transit Cut</div>
+          </div>
+          <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+            <div class="text-xl sm:text-2xl font-black text-emerald-300">₹1,200/ac</div>
+            <div class="text-[10px] sm:text-[11px] text-emerald-200 uppercase font-semibold">Pooled Rental Fee</div>
+          </div>
+          <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+            <div class="text-xl sm:text-2xl font-black text-white">+0.15%</div>
+            <div class="text-[10px] sm:text-[11px] text-emerald-200 uppercase font-semibold">SOC Soil Gain</div>
+          </div>
+          <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+            <div class="text-xl sm:text-2xl font-black text-amber-400">10 Days</div>
+            <div class="text-[10px] sm:text-[11px] text-emerald-200 uppercase font-semibold">Strict Sowing Window</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANDATORY FIELD LOCATION & GPS GEO-TRACKING (FEATURE 2) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">GPS Coordinates</span>
+              <h2 class="text-lg font-bold text-[#1b4332]">Field Location & Satellite Geo-Tracking</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Mandatory field coordinates required for nearest Super Seeder cluster routing.</p>
+          </div>
+
+          <button
+            onclick="detectLiveLocation()"
+            class="flex items-center space-x-2 bg-[#2d6a4f] hover:bg-[#1b4332] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm self-start md:self-auto"
+          >
+            <i class="fa-solid fa-location-crosshairs text-amber-300 animate-spin-slow"></i>
+            <span id="gps-btn-text">Detect My Live GPS Location</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">State</label>
+            <select
+              id="field-state-select"
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="handleStateChange(this.value)"
+            >
+              <option value="Punjab">Punjab</option>
+              <option value="Haryana" selected>Haryana</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">District</label>
+            <select
+              id="field-district-select"
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="recalculateLocation()"
+            >
+              <option value="Karnal">Karnal</option>
+              <option value="Panipat">Panipat</option>
+              <option value="Kurukshetra">Kurukshetra</option>
+              <option value="Ambala">Ambala</option>
+              <option value="Kaithal">Kaithal</option>
+              <option value="Yamunanagar">Yamunanagar</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Village / Tehsil</label>
+            <input
+              id="field-village-input"
+              type="text"
+              value="Taraori"
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="recalculateLocation()"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Pincode</label>
+            <input
+              id="field-pincode-input"
+              type="text"
+              value="132116"
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="recalculateLocation()"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Geo-Coordinates</label>
+            <div class="flex items-center space-x-1">
+              <input
+                id="field-latlon-display"
+                type="text"
+                readonly
+                value="29.7981° N, 76.9295° E"
+                class="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-2 text-xs font-mono font-bold text-[#2d6a4f]"
+              />
+              <span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-satellite"></i></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGIONAL STATE LOCALIZATION INSIGHT -->
+        <div id="state-localization-badge" class="mt-3 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-map-pin text-[#2d6a4f]"></i>
+            <span><strong>Regional State Context:</strong> <span id="state-badge-text">Haryana Hub — Panipat IOCL Bio-Refinery & CBG Off-Take corridor active.</span></span>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px] font-mono">
+            <span class="bg-white/90 px-2 py-0.5 rounded border border-emerald-300">Off-Take Benchmark: <strong id="state-offtake-price" class="text-[#1b4332]">₹1,950–₹2,050/t</strong></span>
+            <span class="bg-white/90 px-2 py-0.5 rounded border border-emerald-300">Sowing Window: <strong id="state-sowing-dates" class="text-[#2d6a4f]">Oct 25 – Nov 15</strong></span>
+          </div>
+        </div>
+
+        <!-- REAL-TIME FIELD ACTIVITY & MACHINE TRACKING CARD -->
+        <div class="mt-5 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#f4f6f0] to-amber-50 border border-[#2d6a4f]/25 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start space-x-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-[#2d6a4f] text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+                <i class="fa-solid fa-truck-moving"></i>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="badge-pill bg-emerald-200 text-emerald-900 text-[10px]">Live Telemetry Active</span>
+                  <span id="tracking-machine-tag" class="font-bold text-xs text-gray-600 font-mono">Super Seeder #PB-11-TURBO</span>
+                </div>
+                <h3 id="tracking-status-headline" class="text-base font-black text-[#1b4332] mt-0.5">
+                  Super Seeder En Route — 1.8 km away
+                </h3>
+                <p id="tracking-subtext" class="text-xs text-gray-600">
+                  Assigned CHC: <strong>Karnal Krishi Yantra Hub</strong> • Driver: <strong>Sardar Balwinder Sandhu</strong> (<a href="tel:+919888199887" class="text-[#2d6a4f] font-bold underline">+91-98881-99887</a>)
+                </p>
+              </div>
+            </div>
+
+            <!-- ETA Timer & Telemetry -->
+            <div class="flex items-center space-x-4 bg-white/80 p-3 rounded-xl border border-gray-200 shrink-0">
+              <div class="text-center px-2">
+                <div class="text-[10px] text-gray-500 uppercase font-semibold">Estimated Arrival</div>
+                <div id="tracking-eta-timer" class="text-2xl font-black text-[#d97706] font-mono">14 MIN</div>
+              </div>
+              <div class="h-8 w-px bg-gray-200"></div>
+              <div class="text-xs space-y-0.5">
+                <div class="text-gray-500">Transit Speed: <strong id="tracking-speed" class="text-gray-800">22 km/h</strong></div>
+                <div class="text-gray-500">Fuel Level: <strong class="text-emerald-700">78%</strong></div>
+                <div class="text-gray-500">Seed Hopper: <strong class="text-[#2d6a4f]">Wheat HD-3086</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FIELD CONFIGURATION & ACREAGE SLIDER -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Acreage & Variety</span>
+              <h2 class="text-lg font-bold text-[#1b4332]">Farm Land Configuration</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Slide to dynamically recalculate sowing schedules and straw marketplace off-take earnings.</p>
+          </div>
+
+          <div class="flex items-center space-x-3 text-xs bg-[#f4f6f0] px-3 py-1.5 rounded-xl border border-gray-200">
+            <span class="font-semibold text-gray-600">Contiguous Pooling Status:</span>
+            <span class="badge-pill bg-emerald-100 text-[#1b4332] font-bold">₹1,200/ac (Saved ₹800/ac)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
+          <!-- Acreage Slider (1-25) -->
+          <div class="md:col-span-6 bg-[#f4f6f0]/70 p-4 rounded-xl border border-gray-200">
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-gray-700">Farm Land Area (Acres)</label>
+              <div class="flex items-baseline space-x-1">
+                <span id="acres-display" class="text-2xl font-black text-[#2d6a4f]">5.0</span>
+                <span class="text-xs font-bold text-gray-500">Acres</span>
+              </div>
+            </div>
+            <input
+              id="acres-slider"
+              type="range"
+              min="1"
+              max="25"
+              step="0.5"
+              value="5"
+              class="w-full h-2.5 bg-[#d8f3dc] rounded-lg cursor-pointer"
+              oninput="handleAcresChange(this.value)"
+            />
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono mt-1">
+              <span>1 Acre (Marginal)</span>
+              <span>12.5 Acres</span>
+              <span>25 Acres (Upper Limit)</span>
+            </div>
+          </div>
+
+          <!-- Harvest Date Picker -->
+          <div class="md:col-span-3 bg-[#f4f6f0]/70 p-4 rounded-xl border border-gray-200">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Paddy Harvest Date</label>
+            <input
+              id="harvest-date-input"
+              type="date"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="recalculateSowing()"
+            />
+            <p class="text-[10px] text-gray-500 mt-1">Combine harvester exit timestamp.</p>
+          </div>
+
+          <!-- Paddy Variety Selector -->
+          <div class="md:col-span-3 bg-[#f4f6f0]/70 p-4 rounded-xl border border-gray-200">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Paddy Crop Cultivar</label>
+            <select
+              id="variety-select"
+              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+              onchange="recalculateSowing()"
+            >
+              <option value="PR-126">PR-126 (Short Duration, 123 Days)</option>
+              <option value="Pusa-44">Pusa-44 (Long Duration, 150 Days)</option>
+            </select>
+            <p class="text-[10px] text-gray-500 mt-1">Dictates terminal heat-stress risks.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- DYNAMIC AGRO-ECONOMIC IMPACT STAT CARDS (MODULE 4) -->
+      <div>
+        <div class="flex items-center space-x-2 mb-3">
+          <i class="fa-solid fa-chart-line text-[#2d6a4f]"></i>
+          <h2 class="text-base font-bold text-[#1b4332]">Agro-Economic & Soil Carbon Ledger</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Gross Straw Cash Revenue -->
+          <div class="agri-card p-5 border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Gross Straw Revenue</span>
+                <div id="kpi-revenue" class="text-2xl font-black text-[#b45309] mt-1">₹21,450</div>
+              </div>
+              <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 text-sm">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+            </div>
+            <p id="kpi-revenue-desc" class="text-[11px] text-gray-600 mt-2">11.0 Tons straw @ ₹1,950/Ton B2B off-take rate.</p>
+          </div>
+
+          <!-- Fertilizer Expense Saved -->
+          <div class="agri-card p-5 border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#2d6a4f]">Fertilizer Expense Saved</span>
+                <div id="kpi-fertilizer" class="text-2xl font-black text-[#2d6a4f] mt-1">₹11,500</div>
+              </div>
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-[#2d6a4f] text-sm">
+                <i class="fa-solid fa-flask"></i>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-600 mt-2">Retaining residue saves 1.5 bags Urea/DAP per acre (₹2,300/ac).</p>
+          </div>
+
+          <!-- Carbon Retained in Soil -->
+          <div class="agri-card p-5 border-teal-200/80 bg-gradient-to-br from-teal-50/50 to-white">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800">Carbon Retained in Soil</span>
+                <div id="kpi-carbon" class="text-2xl font-black text-teal-900 mt-1">5,000 kg</div>
+              </div>
+              <div class="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center text-teal-700 text-sm">
+                <i class="fa-solid fa-leaf"></i>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-600 mt-2">+0.15% SOC boost per season; avoids topsoil sterilization.</p>
+          </div>
+
+          <!-- Total Net Farmer Gain -->
+          <div class="agri-card p-5 border-emerald-700 bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Total Net Farmer Gain</span>
+                <div id="kpi-net-gain" class="text-2xl font-black text-amber-300 mt-1">₹36,950</div>
+              </div>
+              <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 text-sm">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+              </div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-emerald-100">
+              <span>Gross + Fertilizer + Pooling</span>
+              <span id="kpi-per-acre" class="font-bold text-amber-200">+₹7,390/acre</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 bg-red-50 border border-red-200 p-3 rounded-xl flex items-center justify-between text-xs text-red-800">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+            <span><strong>Burning Penalty Averted:</strong> AgriShift OS prevents NGT fines of <strong id="ngt-penalty-text">₹5,000</strong> plus eliminates hazardous PM2.5 field emissions.</span>
+          </div>
+          <span class="badge-pill bg-red-100 text-red-800 border border-red-300">100% Legal Protection</span>
+        </div>
+      </div>
+
+      <!-- 10-DAY DIGITAL SOWING WINDOW ROUTER (MODULE 1) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Module 1</span>
+              <h2 class="text-lg font-bold text-[#1b4332]">10-Day Digital Sowing Window Router</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Strict terminal schedule ensuring timely wheat sowing before terminal heat-stress.</p>
+          </div>
+
+          <div id="deadline-badge-container" class="flex items-center space-x-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div id="variety-rationale-box" class="my-4 p-3.5 rounded-xl bg-[#f4f6f0] border border-[#2d6a4f]/20 text-xs text-gray-700 leading-relaxed flex items-start space-x-3">
+          <i class="fa-solid fa-circle-info text-[#2d6a4f] mt-0.5"></i>
+          <span id="variety-rationale-text">Loading variety analysis...</span>
+        </div>
+
+        <!-- 5-STAGE TIMELINE CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4" id="timeline-cards-container">
+          <!-- Step cards dynamically inserted -->
+        </div>
+      </div>
+
+      <!-- CLUSTER MACHINERY POOLING HUB (MODULE 2) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Module 2</span>
+              <h2 class="text-lg font-bold text-[#1b4332]">Cluster Machinery Pooling Hub ("Uber for Super Seeders")</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Aggregates neighboring 2–5 acre plots into contiguous 30+ acre route nodes.</p>
+          </div>
+
+          <div class="text-xs bg-[#f4f6f0] px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700">
+            <i class="fa-solid fa-gas-pump text-amber-600 mr-1"></i> Transit Diesel: <strong>5.2 L/ac</strong> (Saved 3.3 L/ac)
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4" id="machinery-cards-container">
+          <!-- Cards dynamically inserted -->
+        </div>
+      </div>
+
+      <!-- B2B INDUSTRIAL BIOMASS MARKETPLACE (MODULE 3) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Module 3</span>
+              <h2 class="text-lg font-bold text-[#1b4332]">B2B Industrial Biomass Off-Take Marketplace</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Commercial contracts with 2G Ethanol, Paper Mills, and CBG Plants.</p>
+          </div>
+
+          <div class="text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-emerald-900 font-bold">
+            <i class="fa-solid fa-recycle text-[#2d6a4f] mr-1"></i> 10:1 Closed Biochar Return Ratio
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4" id="buyers-cards-container">
+          <!-- Buyer cards dynamically inserted -->
+        </div>
+
+        <!-- Biochar Byproduct Return Status Banner -->
+        <div class="mt-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-white to-amber-50 border border-[#2d6a4f]/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2d6a4f] text-white flex items-center justify-center text-base">
+              <i class="fa-solid fa-arrows-spin"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-[#1b4332] uppercase">Circular Biochar Byproduct Return Loop</div>
+              <p class="text-[11px] text-gray-600">For every 10 Tons biomass off-taken, refinery credits 1 Ton biochar back to the farmer.</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-gray-500 font-semibold uppercase">Active Inoculation Credit:</div>
+            <div id="biochar-credit-display" class="text-sm font-black text-[#2d6a4f]">+1.1 Tons Biochar (2,750 kg CO₂e Offset)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: MACHINERY RENTAL OPERATOR / CHC HUB (BRAND NEW PORTAL)       -->
+    <!-- =================================================================== -->
+    <div id="tab-operator" class="hidden space-y-6">
+
+      <!-- OPERATOR HUB HERO BANNER -->
+      <div class="bg-gradient-to-r from-[#081c15] via-[#1b4332] to-[#2d6a4f] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#52b788]/30">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center space-x-2 bg-amber-500/20 border border-amber-400/40 px-3 py-1 rounded-full text-xs font-bold text-amber-300 mb-2">
+              <i class="fa-solid fa-truck-ramp-box mr-1"></i>
+              <span>Machinery Rental Operator & CHC Portal</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">
+              Machinery Rental Operator Hub
+            </h1>
+            <p class="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-2xl">
+              Fleet management console for Custom Hiring Centers (CHCs) and tractor owners: Manage Super Seeders, Balers, and Mulchers, set surge-capped rental rates, and accept 30+ contiguous acre cluster routing orders.
+            </p>
+          </div>
+
+          <button
+            onclick="openAddMachineModal()"
+            class="bg-amber-500 hover:bg-amber-400 text-black font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center space-x-2 transition-all shadow-md self-start md:self-auto"
+          >
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Implement to Fleet</span>
+          </button>
+        </div>
+
+        <!-- OPERATOR REVENUE & FLEET METRICS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-emerald-700/60 text-center">
+          <div class="bg-emerald-950/50 p-3 rounded-xl border border-emerald-500/20">
+            <div class="text-xs text-gray-400 uppercase font-semibold">Today's Earnings</div>
+            <div id="op-stat-today" class="text-xl sm:text-2xl font-black text-amber-300 mt-0.5">₹75,000</div>
+            <div class="text-[10px] text-emerald-300">2 Contiguous Routes Done</div>
+          </div>
+
+          <div class="bg-emerald-950/50 p-3 rounded-xl border border-emerald-500/20">
+            <div class="text-xs text-gray-400 uppercase font-semibold">Weekly Revenue</div>
+            <div id="op-stat-weekly" class="text-xl sm:text-2xl font-black text-white mt-0.5">₹2,84,500</div>
+            <div class="text-[10px] text-emerald-300">48 Farmers Serviced</div>
+          </div>
+
+          <div class="bg-emerald-950/50 p-3 rounded-xl border border-emerald-500/20">
+            <div class="text-xs text-gray-400 uppercase font-semibold">Total Acres Serviced</div>
+            <div id="op-stat-acres" class="text-xl sm:text-2xl font-black text-[#52b788] mt-0.5">293.5 Ac</div>
+            <div class="text-[10px] text-emerald-300">Zero In-Field Downtime</div>
+          </div>
+
+          <div class="bg-emerald-950/50 p-3 rounded-xl border border-emerald-500/20">
+            <div class="text-xs text-gray-400 uppercase font-semibold">Transit Fuel Saved</div>
+            <div id="op-stat-fuel" class="text-xl sm:text-2xl font-black text-amber-400 mt-0.5">968.5 L</div>
+            <div class="text-[10px] text-emerald-300">40% Transit Waste Cut</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RENTAL RATE CONTROLLER & SURGE-CAP ALERT -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Rate Engine</span>
+              <h2 class="text-base font-bold text-[#1b4332]">Rental Rate Controller & Surge-Cap Policy</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Adjust custom rental fee per acre. System enforces recommended pooling caps to prevent cluster cancellations.</p>
+          </div>
+
+          <div class="flex items-center space-x-2 text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-300 text-emerald-900 font-bold">
+            <i class="fa-solid fa-shield-halved text-[#2d6a4f]"></i>
+            <span>Platform Surge-Cap Ceiling: ₹1,500 / Acre</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4 items-center">
+          <div class="md:col-span-5 bg-[#f4f6f0] p-4 rounded-xl border border-gray-200">
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold uppercase tracking-wider text-gray-700">Custom Rate Per Acre (INR)</label>
+              <div class="text-xl font-black text-[#2d6a4f]">
+                ₹<span id="rate-display-val">1200</span> / ac
+              </div>
+            </div>
+            <input
+              id="operator-rate-slider"
+              type="range"
+              min="800"
+              max="2200"
+              step="50"
+              value="1200"
+              class="w-full h-2.5 bg-[#d8f3dc] rounded-lg cursor-pointer"
+              oninput="handleRateSlider(this.value)"
+            />
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono mt-1">
+              <span>₹800 (Discount)</span>
+              <span>₹1,200 (Optimal Pooled)</span>
+              <span>₹2,200 (High)</span>
+            </div>
+          </div>
+
+          <!-- Live Rate Advisory Alert -->
+          <div class="md:col-span-7">
+            <div id="rate-alert-box" class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 flex items-start space-x-3">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5"></i>
+              <div>
+                <strong class="text-emerald-900 font-bold">Competitive Pooled Rate Locked:</strong>
+                <p class="text-[11px] text-emerald-800 mt-0.5" id="rate-alert-text">
+                  ₹1,200/acre matches high-priority cluster aggregation in Karnal, Panipat, and Sangrur. Smallholders within a 10 km radius will be routed seamlessly.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FARM ROUTE AGGREGATION & CONTIGUOUS POOLING VISUALIZER (NEW OPERATOR VISUAL MAP) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">
+                <i class="fa-solid fa-route mr-1"></i> Spatial Logistics Routing
+              </span>
+              <h2 class="text-base sm:text-lg font-bold text-[#1b4332]">
+                Farm Route Aggregation & Contiguous Pooling Visualizer
+              </h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Topological schematic illustrating how adjacent 2–5 acre smallholder plots are clustered into contiguous 25+ acre route blocks, eliminating road transit deadhead turns.
+            </p>
+          </div>
+
+          <!-- Cluster Selector Tabs -->
+          <div class="flex items-center space-x-1.5 bg-[#f4f6f0] p-1 rounded-xl border border-gray-200 self-start md:self-auto text-xs">
+            <button
+              id="btn-topo-karnal"
+              onclick="selectTopologyCluster('karnal-taraori')"
+              class="px-3 py-1.5 rounded-lg font-bold transition-all bg-[#2d6a4f] text-white shadow-sm"
+            >
+              Karnal Taraori (27.5 Ac)
+            </button>
+            <button
+              id="btn-topo-sangrur"
+              onclick="selectTopologyCluster('sangrur-west')"
+              class="px-3 py-1.5 rounded-lg font-bold transition-all text-gray-600 hover:text-gray-900"
+            >
+              Sangrur West (32.0 Ac)
+            </button>
+            <button
+              id="btn-topo-panipat"
+              onclick="selectTopologyCluster('panipat-corridor')"
+              class="px-3 py-1.5 rounded-lg font-bold transition-all text-gray-600 hover:text-gray-900"
+            >
+              Panipat Corridor (29.0 Ac)
+            </button>
+          </div>
+        </div>
+
+        <!-- MAIN VISUALIZER BODY: TOPOLOGICAL SCHEMATIC + EFFICIENCY COMPARISON -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-5 items-start">
+          
+          <!-- LEFT/CENTER (7 cols): TOPOLOGICAL MAP SCHEMATIC -->
+          <div class="lg:col-span-7 bg-gradient-to-br from-emerald-950 via-[#1b4332] to-[#081c15] text-white p-5 rounded-2xl border border-[#52b788]/30 shadow-lg relative overflow-hidden">
+            
+            <!-- Map Top Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-emerald-700/50 text-xs">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="topo-cluster-title" class="font-bold text-emerald-200">Karnal Taraori Node #042</span>
+                <span class="text-gray-400">•</span>
+                <span id="topo-cluster-meta" class="text-gray-300 font-mono text-[11px]">27.5 Ac Contiguous • 7 Smallholders</span>
+              </div>
+
+              <!-- Transit View Mode Toggle -->
+              <button
+                id="btn-toggle-transit-mode"
+                onclick="toggleTransitMode()"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 hover:bg-amber-500/30 transition-all flex items-center space-x-1"
+              >
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                <span id="toggle-mode-text">View Fragmented Deadhead Trips</span>
+              </button>
+            </div>
+
+            <!-- CHC Depot Node -->
+            <div class="flex items-center justify-between mt-3 p-2.5 rounded-xl bg-black/40 border border-emerald-500/30 text-xs">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-500 text-black flex items-center justify-center font-bold text-sm">
+                  <i class="fa-solid fa-warehouse"></i>
+                </div>
+                <div>
+                  <div id="topo-chc-name" class="font-bold text-white text-xs">Karnal Kisan Vikas Sahayata CHC</div>
+                  <div id="topo-machine-assigned" class="text-[10px] text-gray-400 font-mono">Tractor Hub Origin • 55 HP Shaktiman Super Seeder</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-emerald-400 font-mono font-bold">1.8 km asphalt link</span>
+                <div class="text-[10px] text-gray-400">Zero In-Field Highway Cuts</div>
+              </div>
+            </div>
+
+            <!-- Interactive Contiguous Farm Parcels Grid -->
+            <div class="mt-4 relative">
+              <!-- Transit Mode Banner (when Fragmented is active) -->
+              <div id="fragmented-warning-overlay" class="hidden mb-3 p-2 rounded-xl bg-red-950/80 border border-red-500/50 text-[11px] text-red-200 flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+                <span><strong>Un-Pooled Fragmented Mode:</strong> High deadhead transit waste (8.5 L/ac). Tractor must return to public roads for every individual 3-acre plot.</span>
+              </div>
+
+              <!-- Parcels Container: dynamically rendered plots with contiguous boundary connectors -->
+              <div id="topo-parcels-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative">
+                <!-- Parcel cards inserted dynamically -->
+              </div>
+
+              <!-- Active Serpentine Connector Schematic Overlay -->
+              <div class="mt-3 p-3 rounded-xl bg-emerald-900/40 border border-emerald-500/20 text-xs flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center space-x-2">
+                  <i class="fa-solid fa-tractor text-amber-400 animate-bounce"></i>
+                  <span class="text-xs text-gray-200">
+                    <strong>Contiguous Serpentine Pass:</strong> <span id="topo-pass-desc">P1 (4.0 Ac) → P2 (3.5 Ac) → P3 (5.0 Ac) → P4 (3.0 Ac) → P5 (4.5 Ac) → P6 (4.0 Ac) → P7 (3.5 Ac)</span>
+                  </span>
+                </div>
+                <button
+                  onclick="simulateTractorRun()"
+                  class="bg-amber-400 hover:bg-amber-300 text-black font-extrabold px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider transition-all flex items-center space-x-1"
+                >
+                  <i class="fa-solid fa-play"></i>
+                  <span>Simulate Tractor Run</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Simulation Progress Bar -->
+            <div id="topo-sim-bar-container" class="mt-3 hidden">
+              <div class="flex justify-between text-[10px] text-gray-300 font-mono mb-1">
+                <span>Contiguous Cluster Run Progress:</span>
+                <span id="topo-sim-percent">0% (0 / 27.5 Acres Cleared)</span>
+              </div>
+              <div class="w-full bg-black/50 h-2.5 rounded-full overflow-hidden border border-emerald-500/30">
+                <div id="topo-sim-progress" class="bg-gradient-to-r from-emerald-400 to-amber-400 h-full w-0 transition-all duration-300"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT (5 cols): EFFICIENCY BENCHMARK COMPARISON -->
+          <div class="lg:col-span-5 space-y-3.5">
+            <div class="p-3.5 rounded-2xl bg-[#f4f6f0] border border-gray-200">
+              <h3 class="font-extrabold text-xs uppercase tracking-wider text-[#1b4332] mb-2 flex items-center space-x-1.5">
+                <i class="fa-solid fa-chart-line text-[#2d6a4f]"></i>
+                <span>Contiguous Pooling Efficiency Impact</span>
+              </h3>
+
+              <!-- Metric 1: Transit Diesel Waste -->
+              <div class="p-3 rounded-xl bg-white border border-gray-200 mb-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-500 font-semibold">Transit Diesel Consumption</span>
+                  <span class="badge-pill bg-emerald-100 text-emerald-800 text-[10px] font-black">-40% Waste Cut</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-100 text-center">
+                  <div class="bg-red-50 p-2 rounded-lg border border-red-200">
+                    <div class="text-[10px] text-red-700 font-bold">Un-Pooled Individual</div>
+                    <div class="text-sm font-black text-red-800">8.5 L / Acre</div>
+                    <div class="text-[9px] text-gray-500">Road deadheading</div>
+                  </div>
+                  <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-300">
+                    <div class="text-[10px] text-emerald-800 font-bold">AgriShift Contiguous</div>
+                    <div class="text-sm font-black text-emerald-900">5.2 L / Acre</div>
+                    <div class="text-[9px] text-emerald-700 font-semibold">Zero road re-entry</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metric 2: Daily Tractor Coverage -->
+              <div class="p-3 rounded-xl bg-white border border-gray-200 mb-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-500 font-semibold">Daily Tractor Coverage</span>
+                  <span class="badge-pill bg-amber-100 text-amber-900 text-[10px] font-black">+115% Utilization Surge</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-100 text-center">
+                  <div class="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <div class="text-[10px] text-gray-600 font-bold">Fragmented Dispatches</div>
+                    <div class="text-sm font-black text-gray-700">12–14 Ac / Day</div>
+                    <div class="text-[9px] text-gray-500">Wasted in transit</div>
+                  </div>
+                  <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-300">
+                    <div class="text-[10px] text-emerald-800 font-bold">Contiguous Block</div>
+                    <div class="text-sm font-black text-[#2d6a4f]">26–30 Ac / Day</div>
+                    <div class="text-[9px] text-emerald-700 font-semibold">Non-stop field pass</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metric 3: Plot Turnaround Delay -->
+              <div class="p-3 rounded-xl bg-white border border-gray-200 mb-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-gray-500 font-semibold">Plot-to-Plot Turnaround Delay</span>
+                  <span class="badge-pill bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Dead-Time Cut</span>
+                </div>
+                <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 text-xs">
+                  <span class="text-gray-600 text-[11px]">Road transit between scattered plots:</span>
+                  <span class="line-through text-red-500 font-mono font-bold">45–60 mins</span>
+                </div>
+                <div class="flex items-center justify-between mt-1 text-xs">
+                  <span class="text-emerald-800 text-[11px] font-bold">Contiguous cross-furrow boundary transit:</span>
+                  <span class="text-emerald-700 font-mono font-black">0 mins (Instant)</span>
+                </div>
+              </div>
+
+              <!-- Metric 4: Operator Daily Revenue -->
+              <div class="p-3 rounded-xl bg-gradient-to-r from-emerald-100 via-emerald-50 to-amber-100 border border-emerald-300">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-[#1b4332] font-black uppercase text-[11px]">Guaranteed Route Payout</span>
+                  <span id="topo-payout-val" class="text-base font-black text-[#1b4332]">₹33,000</span>
+                </div>
+                <p class="text-[10px] text-emerald-900 mt-1">
+                  Guaranteed contiguous 27.5+ acre day-block at ₹1,200/ac. Operator earns higher net daily margin despite lower per-acre fee due to zero unpaid transit deadheading.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- INCOMING CLUSTER ORDER QUEUE (FEATURE 3) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Live Queue</span>
+              <h2 class="text-base font-bold text-[#1b4332]">Incoming Cluster Booking Requests (Aggregated Smallholders)</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Contiguous smallholder parcels automatically clustered by location proximity.</p>
+          </div>
+
+          <span class="badge-pill bg-amber-100 text-amber-800 border border-amber-300">
+            <i class="fa-solid fa-spinner fa-spin mr-1"></i> Live Dispatch Queue
+          </span>
+        </div>
+
+        <div class="space-y-3 mt-4" id="operator-requests-container">
+          <!-- Request cards inserted dynamically -->
+        </div>
+      </div>
+
+      <!-- FLEET INVENTORY MANAGEMENT (FEATURE 3) -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="badge-pill bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/20">Machinery Depot</span>
+              <h2 class="text-base font-bold text-[#1b4332]">Depot Fleet & Machinery Status</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">Manage Super Seeders, Balers, and Tractors assigned to regional operations.</p>
+          </div>
+
+          <div class="text-xs font-semibold text-gray-600">
+            Fleet Capacity: <strong id="fleet-count-display" class="text-[#2d6a4f]">4 Implements</strong>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4" id="operator-fleet-container">
+          <!-- Fleet cards inserted dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: SYSTEM FEASIBILITY & AGRONOMIC BENCHMARKS                   -->
+    <!-- =================================================================== -->
+    <div id="tab-benchmarks" class="hidden space-y-6">
+
+      <!-- SYSTEM FEASIBILITY BANNER (CLEANED OF FACULTY / GROUP LABELS) -->
+      <div class="bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#081c15] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#52b788]/30">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center space-x-2 bg-amber-500/20 border border-amber-400/40 px-3 py-1 rounded-full text-xs font-bold text-amber-300 mb-2">
+              <i class="fa-solid fa-award"></i>
+              <span>Empirical Feasibility & Agronomics</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight">
+              Agronomic Validation & Supply-Chain Mathematics
+            </h1>
+            <p class="text-xs sm:text-sm text-emerald-100/90 mt-1 max-w-2xl">
+              Scientific justification of AgriShift OS: Demonstrating why 100% digital logistics and contiguous pooling succeed where biological decomposer sprays thermodynamically fail.
+            </p>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-xs space-y-2 shrink-0">
+            <div>
+              <span class="text-emerald-300 text-[10px] uppercase font-bold tracking-wider">Architecture Mode:</span>
+              <div class="text-sm sm:text-base font-black text-white">100% Software Logistics</div>
+            </div>
+            <div class="pt-2 border-t border-white/10 flex justify-between gap-4">
+              <div>
+                <span class="text-gray-300 text-[10px]">Methodology:</span>
+                <div class="font-bold text-amber-400">Cluster Routing</div>
+              </div>
+              <div>
+                <span class="text-gray-300 text-[10px]">Verification:</span>
+                <div class="font-bold text-emerald-200">Production Ready</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCIENTIFIC FEASIBILITY Q&A CARDS -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex items-center space-x-2 pb-3 border-b border-gray-100 mb-4">
+          <i class="fa-solid fa-clipboard-question text-[#2d6a4f]"></i>
+          <h2 class="text-lg font-bold text-[#1b4332]">Scientific Feasibility: Core Q&A Cards</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Card 1: Thermodynamics of Spray Failure -->
+          <div class="p-5 rounded-2xl bg-[#f4f6f0] border border-[#2d6a4f]/20 space-y-2">
+            <div class="flex items-center space-x-2 text-[#2d6a4f] font-bold text-xs uppercase">
+              <i class="fa-solid fa-temperature-arrow-down"></i>
+              <span>Thermodynamics & Kinetics</span>
+            </div>
+            <h3 class="font-bold text-sm text-[#1b4332]">Why do microbial bio-decomposer sprays fail in the North Indian November window?</h3>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              Biological decomposers rely on mesophilic fungi/bacteria (e.g., <em>Trichoderma</em>, <em>Aspergillus</em>) requiring 25 to 30 days and temperatures above 28°C. During late October/November in Punjab and Haryana, nightly ambient temperatures drop below 14°C, plunging microbial enzyme activity by >85%. Sowing wheat 20 days late incurs a catastrophic 25–35% yield penalty due to March heat-stress. AgriShift OS solves this digitally by dispatching physical Super Seeders in 48–72 hours.
+            </p>
+          </div>
+
+          <!-- Card 2: Cluster Routing Economics -->
+          <div class="p-5 rounded-2xl bg-[#f4f6f0] border border-[#2d6a4f]/20 space-y-2">
+            <div class="flex items-center space-x-2 text-[#2d6a4f] font-bold text-xs uppercase">
+              <i class="fa-solid fa-route"></i>
+              <span>Supply Chain Mathematics</span>
+            </div>
+            <h3 class="font-bold text-sm text-[#1b4332]">How does the 30+ Acre Cluster Router cut transit diesel waste by 40%?</h3>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              When smallholders (2–5 acres) hire machinery individually, tractors waste up to 8.5 liters of diesel per acre deadheading between non-contiguous plots. AgriShift OS’s clustering algorithm groups adjacent parcels into a single continuous serpentine pass of 30+ contiguous acres. This reduces turnaround deadhead by 40%, dropping diesel burn to 5.2 L/acre and lowering hiring fees from ₹2,000 to ₹1,200/acre.
+            </p>
+          </div>
+
+          <!-- Card 3: 2G Ethanol & Biochar Closed Loop -->
+          <div class="p-5 rounded-2xl bg-[#f4f6f0] border border-[#2d6a4f]/20 space-y-2">
+            <div class="flex items-center space-x-2 text-[#2d6a4f] font-bold text-xs uppercase">
+              <i class="fa-solid fa-industry"></i>
+              <span>Circular Bioeconomy</span>
+            </div>
+            <h3 class="font-bold text-sm text-[#1b4332]">How does the 10:1 Biochar loop prevent soil nutrient depletion from ex-situ baling?</h3>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              Removing raw straw for industrial off-take risks stripping soil of carbon. AgriShift OS institutes a contractual closed loop with refineries (e.g., IOCL Panipat): for every 10 Tons of dry biomass off-taken, 1 Ton of recalcitrant, pyrolyzed biochar is credited back to the farmer. When applied to topsoil, biochar permanently sequesters recalcitrant carbon (half-life >100 years) and locks in a +0.15% SOC improvement.
+            </p>
+          </div>
+
+          <!-- Card 4: Macroeconomic Airshed Policy -->
+          <div class="p-5 rounded-2xl bg-[#f4f6f0] border border-[#2d6a4f]/20 space-y-2">
+            <div class="flex items-center space-x-2 text-[#2d6a4f] font-bold text-xs uppercase">
+              <i class="fa-solid fa-scale-balanced"></i>
+              <span>Macroeconomics & Incentives</span>
+            </div>
+            <h3 class="font-bold text-sm text-[#1b4332]">Why is algorithmic profit monetization superior to police crackdowns and NGT fines?</h3>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              Punitive enforcement fails because farmers burn out of economic desperation facing the 10-day terminal deadline. AgriShift OS transforms residue from an illegal liability into a commercial asset: generating ₹1,950–₹2,100/ton in cash revenue, ₹2,300/acre in fertilizer savings, and ₹800/acre in machinery pooling savings, yielding a net positive gain of +₹7,390/acre.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGRONOMIC BENCHMARK MATRIX TABLE -->
+      <div class="agri-card p-6 bg-white border border-[#2d6a4f]/20">
+        <div class="flex items-center space-x-2 pb-3 border-b border-gray-100 mb-4">
+          <i class="fa-solid fa-chart-column text-[#2d6a4f]"></i>
+          <h2 class="text-lg font-bold text-[#1b4332]">Empirical Comparison Matrix: Open Burning vs. AgriShift OS</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#f4f6f0] text-gray-700 uppercase font-bold text-[10px]">
+              <tr>
+                <th class="p-3.5 rounded-l-xl">Agronomic Metric</th>
+                <th class="p-3.5 text-red-700 bg-red-50/50">Open Field Burning (Baseline)</th>
+                <th class="p-3.5 text-emerald-900 bg-emerald-50/60">AgriShift OS Digital Solution</th>
+                <th class="p-3.5 rounded-r-xl">Outcome Verdict</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 font-medium">
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Field Clearing Turnaround</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">24 - 48 Hours (Fast but illegal)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">48 - 72 Hours (Contiguous Super Seeder cluster)</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">On-time wheat sowing</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Soil Organic Carbon (SOC)</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">-0.05% loss (100% surface carbon burned)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">+0.15% per season (1,000 kg C retained/acre)</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">Reverses degradation</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Soil Microbiome & Earthworms</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">Total sterilization (Topsoil hits 50-70°C)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">100% preserved; mulch acts as thermal blanket</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">Active biological fixation</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Fertilizer Requirement</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">High (Requires 2 extra bags Urea/DAP per acre)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">Saves 1.5 bags Urea/DAP (₹2,300/acre saved)</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">Direct cost reduction</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Farmer Financial Impact</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">Net Loss (₹2,500 - ₹15,000 NGT environmental fine)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">+₹6,590 to ₹8,500/acre Net Economic Gain</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">Asset monetization</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50/60 transition-colors">
+                <td class="p-3.5 font-bold text-[#1b4332]">Air Quality (PM2.5 / AQI)</td>
+                <td class="p-3.5 text-red-600 bg-red-50/20">Severe/Hazardous (AQI 450 - 900+)</td>
+                <td class="p-3.5 text-emerald-800 bg-emerald-50/30 font-bold">Zero field emissions (100% digital supply chain)</td>
+                <td class="p-3.5 font-semibold text-gray-700"><span class="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-[11px]">100% airshed protection</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: AUTHENTICATION & ROLE GATEWAY     -->
+  <!-- ========================================== -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#2d6a4f]/30 transform transition-all animate-fadeIn">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-gradient-to-br from-[#52b788] to-[#2d6a4f] rounded-2xl mx-auto flex items-center justify-center text-white text-2xl mb-3 shadow-md">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <h2 class="text-2xl font-black text-[#1b4332]">Welcome to AgriShift OS</h2>
+        <p class="text-xs text-gray-500 mt-1">Select your portal role to access customized scheduling and fleet controls.</p>
+      </div>
+
+      <!-- Role Selection Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <!-- Role A: Farmer -->
+        <div
+          id="role-card-farmer"
+          onclick="selectAuthRole('farmer')"
+          class="p-4 rounded-2xl border-2 border-[#2d6a4f] bg-emerald-50/50 cursor-pointer transition-all hover:shadow-md flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="w-8 h-8 rounded-xl bg-[#2d6a4f] text-white flex items-center justify-center text-sm">
+                <i class="fa-solid fa-wheat-awn"></i>
+              </span>
+              <i id="role-check-farmer" class="fa-solid fa-circle-check text-[#2d6a4f] text-lg"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-[#1b4332]">Farmer Portal</h3>
+            <p class="text-[11px] text-gray-600 mt-1">For smallholders managing fields, 10-day sowing windows, and selling straw bales.</p>
+          </div>
+          <span class="text-[10px] font-bold text-[#2d6a4f] mt-3 uppercase tracking-wider">Smallholder Access →</span>
+        </div>
+
+        <!-- Role B: Machinery Operator -->
+        <div
+          id="role-card-operator"
+          onclick="selectAuthRole('operator')"
+          class="p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition-all hover:border-[#2d6a4f]/50 hover:shadow-md flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="w-8 h-8 rounded-xl bg-amber-500 text-black flex items-center justify-center text-sm">
+                <i class="fa-solid fa-tractor"></i>
+              </span>
+              <i id="role-check-operator" class="fa-regular fa-circle text-gray-300 text-lg"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-[#1b4332]">Machinery Operator</h3>
+            <p class="text-[11px] text-gray-600 mt-1">For CHCs & machine owners offering Super Seeders, Balers, and accepting cluster dispatches.</p>
+          </div>
+          <span class="text-[10px] font-bold text-gray-500 mt-3 uppercase tracking-wider">Fleet Operator Access →</span>
+        </div>
+      </div>
+
+      <!-- Phone Number & OTP Input -->
+      <div class="space-y-3 bg-[#f4f6f0] p-4 rounded-2xl border border-gray-200">
+        <div>
+          <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Mobile Phone Number</label>
+          <div class="flex items-center space-x-2">
+            <span class="bg-white border border-gray-300 px-3 py-2 rounded-xl text-xs font-bold text-gray-600">+91</span>
+            <input
+              id="auth-phone-input"
+              type="tel"
+              placeholder="98765 43210"
+              value="9876543210"
+              class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">OTP Verification Code</label>
+          <input
+            id="auth-otp-input"
+            type="text"
+            placeholder="Enter 6-digit OTP (Default: 123456)"
+            value="123456"
+            class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]"
+          />
+        </div>
+      </div>
+
+      <!-- Login Submit Button -->
+      <button
+        onclick="submitLogin()"
+        class="w-full mt-5 bg-[#2d6a4f] hover:bg-[#1b4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center space-x-2"
+      >
+        <span>Verify & Enter AgriShift OS</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: ADD MACHINE TO OPERATOR FLEET    -->
+  <!-- ========================================== -->
+  <div id="add-machine-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#2d6a4f]/30 transform transition-all animate-fadeIn">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
+        <h3 class="font-extrabold text-base text-[#1b4332] flex items-center space-x-2">
+          <i class="fa-solid fa-plus text-[#2d6a4f]"></i>
+          <span>Add Implement to Depot Fleet</span>
+        </h3>
+        <button onclick="closeAddMachineModal()" class="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+      </div>
+
+      <form onsubmit="submitAddMachine(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Machine Implement Type</label>
+          <select id="new-machine-type" class="w-full bg-[#f4f6f0] border border-gray-300 rounded-xl p-2.5 font-bold text-gray-800">
+            <option value="Super Seeder">Super Seeder (Simultaneous Straw Mulch + Wheat Drill)</option>
+            <option value="Straw Baler">High-Density Straw Baler (Round / Square)</option>
+            <option value="Straw Chopper / Mulcher">Paddy Straw Chopper / Shredder</option>
+            <option value="Zero-Till Happy Seeder">Zero-Till Happy Seeder</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Brand & Model Name</label>
+          <input
+            id="new-machine-model"
+            type="text"
+            placeholder="e.g. Shaktiman 8-Feet Heavy Duty"
+            required
+            class="w-full bg-[#f4f6f0] border border-gray-300 rounded-xl p-2.5 font-semibold text-gray-800"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Tractor HP Required</label>
+            <input
+              id="new-machine-hp"
+              type="number"
+              value="55"
+              min="40"
+              max="90"
+              required
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-xl p-2.5 font-bold text-gray-800"
+            />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Daily Acre Capacity</label>
+            <input
+              id="new-machine-capacity"
+              type="number"
+              step="0.5"
+              value="20"
+              required
+              class="w-full bg-[#f4f6f0] border border-gray-300 rounded-xl p-2.5 font-bold text-gray-800"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-700 uppercase mb-1">Standard Rental Rate / Acre (INR)</label>
+          <input
+            id="new-machine-rate"
+            type="number"
+            value="1200"
+            min="800"
+            max="2500"
+            required
+            class="w-full bg-[#f4f6f0] border border-gray-300 rounded-xl p-2.5 font-bold text-[#2d6a4f]"
+          />
+          <span class="text-[10px] text-gray-500">Recommended cluster ceiling: ₹1,500/ac.</span>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full mt-4 bg-[#2d6a4f] hover:bg-[#1b4332] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md"
+        >
+          Confirm & Add to Active Depot
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: CLUSTER DISPATCH CONFIRMATION     -->
+  <!-- ========================================== -->
+  <div id="booking-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#2d6a4f]/30 transform transition-all animate-fadeIn">
+      <div class="text-center">
+        <div class="w-14 h-14 bg-emerald-100 rounded-2xl mx-auto flex items-center justify-center text-[#2d6a4f] text-2xl mb-3">
+          <i class="fa-solid fa-truck-fast"></i>
+        </div>
+        <span class="badge-pill bg-emerald-100 text-emerald-800 text-[10px]">Route Locked</span>
+        <h3 class="text-xl font-black text-[#1b4332] mt-1" id="modal-title">Super Seeder Fleet Dispatched</h3>
+        <p class="text-xs text-gray-500 mt-1" id="modal-cluster-code">Cluster: CL-KRN-042</p>
+      </div>
+
+      <div class="my-5 p-4 bg-[#f4f6f0] rounded-2xl space-y-2 text-xs border border-gray-200">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Service Operator:</span>
+          <strong class="text-gray-800" id="modal-chc-name">Karnal Kisan Vikas Sahayata CHC</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Rental Fee:</span>
+          <strong class="text-[#2d6a4f]" id="modal-rental-rate">₹1,200 / Acre (Pooled Rate)</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Farmer Cash Saved:</span>
+          <strong class="text-emerald-700" id="modal-cash-saved">₹4,000 (Saved ₹800/ac)</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Fuel Waste Eliminated:</span>
+          <strong class="text-amber-800" id="modal-fuel-saved">16.5 Liters Diesel</strong>
+        </div>
+      </div>
+
+      <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-[11px] text-emerald-900 mb-5">
+        <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>
+        <span>Live GPS link and tractor driver contact dispatched via SMS.</span>
+      </div>
+
+      <button
+        onclick="closeModal()"
+        class="w-full bg-[#2d6a4f] hover:bg-[#1b4332] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md"
+      >
+        Return to Portal
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- FOOTER                                     -->
+  <!-- ========================================== -->
+  <footer class="bg-[#1b4332] text-white py-6 border-t border-[#2d6a4f] mt-12 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-seedling text-[#52b788]"></i>
+        <span class="font-extrabold tracking-tight">AgriShift OS</span>
+        <span class="text-gray-400">|</span>
+        <span class="text-emerald-200">100% Digital Supply-Chain & Fleet Routing System</span>
+      </div>
+      <div class="text-center sm:text-right text-gray-300">
+        <div>Platform Status: <strong class="text-white">Active Production Build v2.0</strong></div>
+        <div class="text-emerald-300 font-semibold">Zero Bio-Chemical Spray Dependencies</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- SCRIPT & ASYNC REST API CLIENT INTEGRATION -->
+  <!-- ========================================== -->
+  <script>
+    const API_BASE_URL = 'http://127.0.0.1:8000/api';
+    let isApiOnline = false;
+
+    // Session State
+    let currentRole = 'farmer'; // 'farmer' or 'operator'
+    let currentUserName = 'Harjit Singh';
+    let currentPhone = '9876543210';
+
+    // Farmer Field State
+    let currentAcres = 5.0;
+    let currentHarvestDate = new Date().toISOString().split('T')[0];
+    let currentVariety = 'PR-126';
+    let currentState = 'Haryana';
+    let currentVillage = 'Taraori';
+    let currentDistrict = 'Karnal';
+    let currentPincode = '132116';
+    let currentLat = 29.7981;
+    let currentLon = 76.9295;
+
+    // Operator State
+    let operatorRentalRate = 1200.0;
+    let operatorFleet = [
+      { id: 1, machine_type: "Super Seeder", model_name: "Shaktiman 7-Feet Heavy Duty", tractor_hp_req: 55, daily_capacity_acres: 18.0, rental_rate_per_acre: 1200.0, status: "available" },
+      { id: 2, machine_type: "Straw Baler", model_name: "Fieldking Square Baler 450", tractor_hp_req: 60, daily_capacity_acres: 25.0, rental_rate_per_acre: 1350.0, status: "available" },
+      { id: 3, machine_type: "Straw Chopper / Mulcher", model_name: "Dasmesh 9-Row Stubble Shredder", tractor_hp_req: 50, daily_capacity_acres: 22.0, rental_rate_per_acre: 1100.0, status: "maintenance" },
+      { id: 4, machine_type: "Zero-Till Happy Seeder", model_name: "Sonalika Deluxe Combo 60 HP", tractor_hp_req: 60, daily_capacity_acres: 20.0, rental_rate_per_acre: 1250.0, status: "available" }
+    ];
+
+    let clusterRequests = [
+      { cluster_id: 101, cluster_name: "Sangrur Cluster #4", region: "Sunam - Lehragaga Belt, Sangrur", contiguous_acres: 28.5, farmer_count: 6, target_date: "Tomorrow, 07:00 AM", estimated_payout_inr: 34200.0, status: "pending_acceptance", urgency: "High (Sowing Window Day 4)" },
+      { cluster_id: 102, cluster_name: "Karnal Central Cluster #12", region: "Nilokheri - Taraori Corridor", contiguous_acres: 34.0, farmer_count: 8, target_date: "Today, 02:00 PM", estimated_payout_inr: 40800.0, status: "dispatched", urgency: "Critical (Window Closing in 48h)" },
+      { cluster_id: 103, cluster_name: "Panipat Refinery Agro Ring #2", region: "Samalkha - Baholi Border", contiguous_acres: 31.5, farmer_count: 7, target_date: "Nov 08, 08:30 AM", estimated_payout_inr: 37800.0, status: "pending_acceptance", urgency: "Urgent" }
+    ];
+
+    const fallbackBuyers = [
+      { id: 1, plant_name: "IOCL 2G Bio-Ethanol Refinery", industry_type: "2G Bio-Ethanol", location: "Panipat, Haryana", offtake_price_per_ton: 1950, daily_intake_tons: 750, biochar_return_ratio: "1 Ton Biochar per 10 Tons Biomass (10%)" },
+      { id: 2, plant_name: "Trident Group Paper Complex", industry_type: "Paper & Packaging", location: "Barnala, Punjab", offtake_price_per_ton: 2100, daily_intake_tons: 500, biochar_return_ratio: "1 Ton Biochar per 10 Tons Biomass (10%)" },
+      { id: 3, plant_name: "EverEnviro CBG Bio-Energy Facility", industry_type: "Compressed Biogas (CBG)", location: "Lehragaga, Sangrur", offtake_price_per_ton: 2000, daily_intake_tons: 350, biochar_return_ratio: "1 Ton Biochar per 10 Tons Biomass (10%)" }
+    ];
+
+    const fallbackClusters = [
+      { id: 1, cluster_code: "CL-KRN-042", target_date: "2026-11-07", total_acres: 34.5, farmer_count: 8, rental_rate_per_acre: 1200, transit_waste_saved_pct: 42.5, diesel_saved_liters: 113.8, chc_name: "Karnal Kisan Vikas Sahayata CHC", machine_name: "Super Seeder (55 HP Shaktiman)", status: "matched" },
+      { id: 2, cluster_code: "CL-PNP-018", target_date: "2026-11-08", total_acres: 28.0, farmer_count: 6, rental_rate_per_acre: 1200, transit_waste_saved_pct: 39.0, diesel_saved_liters: 92.4, chc_name: "Panipat Krishi Cooperative Hub", machine_name: "High-Density Square Baler 450", status: "forming" },
+      { id: 3, cluster_code: "CL-LDH-091", target_date: "2026-11-09", total_acres: 31.0, farmer_count: 7, rental_rate_per_acre: 1200, transit_waste_saved_pct: 41.2, diesel_saved_liters: 102.3, chc_name: "Ludhiana Central Agro Hub", machine_name: "Super Seeder Turbo 60 HP", status: "matched" }
+    ];
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('harvest-date-input').value = currentHarvestDate;
+      checkApiHealth();
+
+      // Check saved session or open login modal
+      const savedRole = localStorage.getItem('agrishift_role');
+      if (savedRole) {
+        currentRole = savedRole;
+        currentUserName = localStorage.getItem('agrishift_name') || (savedRole === 'farmer' ? 'Harjit Singh' : 'Sardar Gurpreet Singh');
+        updateSessionUI();
+        document.getElementById('auth-modal').classList.add('hidden');
+      } else {
+        openAuthModal();
+      }
+
+      updateAllFarmerData();
+      renderOperatorFleet();
+      renderOperatorRequests();
+      loadMachineryClusters();
+      loadIndustrialBuyers();
+      pollFieldLocation();
+      renderTopologyParcels();
+    });
+
+    // ==========================================
+    // API HEALTH CHECK
+    // ==========================================
+    async function checkApiHealth() {
+      const pill = document.getElementById('api-status-pill');
+      const text = document.getElementById('api-status-text');
+
+      try {
+        const res = await fetch(`${API_BASE_URL.replace('/api', '')}/api/health`, { method: 'GET' });
+        if (res.ok) {
+          isApiOnline = true;
+          pill.className = "flex items-center space-x-1.5 bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-500 text-[11px]";
+          text.className = "text-emerald-300 font-mono font-bold";
+          text.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> API Port 8000 Online';
+          return;
+        }
+      } catch (err) {}
+
+      isApiOnline = false;
+      pill.className = "flex items-center space-x-1.5 bg-[#2d6a4f]/30 px-2.5 py-0.5 rounded-full border border-[#52b788]/40 text-[11px]";
+      text.className = "text-amber-200 font-mono";
+      text.innerHTML = '<i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Client Fallback Active';
+    }
+
+    // ==========================================
+    // AUTHENTICATION & ROLE SWITCHING (FEATURE 1)
+    // ==========================================
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    let tempSelectedRole = 'farmer';
+    function selectAuthRole(role) {
+      tempSelectedRole = role;
+      const farmerCard = document.getElementById('role-card-farmer');
+      const operatorCard = document.getElementById('role-card-operator');
+      const farmerCheck = document.getElementById('role-check-farmer');
+      const operatorCheck = document.getElementById('role-check-operator');
+
+      if (role === 'farmer') {
+        farmerCard.className = "p-4 rounded-2xl border-2 border-[#2d6a4f] bg-emerald-50/50 cursor-pointer transition-all hover:shadow-md flex flex-col justify-between";
+        operatorCard.className = "p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition-all hover:border-[#2d6a4f]/50 hover:shadow-md flex flex-col justify-between";
+        farmerCheck.className = "fa-solid fa-circle-check text-[#2d6a4f] text-lg";
+        operatorCheck.className = "fa-regular fa-circle text-gray-300 text-lg";
+      } else {
+        operatorCard.className = "p-4 rounded-2xl border-2 border-[#2d6a4f] bg-emerald-50/50 cursor-pointer transition-all hover:shadow-md flex flex-col justify-between";
+        farmerCard.className = "p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition-all hover:border-[#2d6a4f]/50 hover:shadow-md flex flex-col justify-between";
+        operatorCheck.className = "fa-solid fa-circle-check text-[#2d6a4f] text-lg";
+        farmerCheck.className = "fa-regular fa-circle text-gray-300 text-lg";
+      }
+    }
+
+    async function submitLogin() {
+      const phone = document.getElementById('auth-phone-input').value.trim() || '9876543210';
+      const otp = document.getElementById('auth-otp-input').value.trim() || '123456';
+      currentRole = tempSelectedRole;
+      currentPhone = phone;
+
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone, role: currentRole, otp: otp })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            currentUserName = data.user.name;
+          }
+        } catch (e) {}
+      } else {
+        currentUserName = currentRole === 'farmer' ? 'Harjit Singh' : 'Sardar Gurpreet Singh';
+      }
+
+      localStorage.setItem('agrishift_role', currentRole);
+      localStorage.setItem('agrishift_name', currentUserName);
+
+      updateSessionUI();
+      document.getElementById('auth-modal').classList.add('hidden');
+
+      if (currentRole === 'operator') {
+        switchTab('tab-operator');
+      } else {
+        switchTab('tab-farmer');
+      }
+    }
+
+    function updateSessionUI() {
+      const nameEl = document.getElementById('session-user-name');
+      const iconEl = document.getElementById('session-role-icon');
+
+      if (currentRole === 'farmer') {
+        nameEl.innerText = `${currentUserName} (Farmer)`;
+        iconEl.className = "fa-solid fa-wheat-awn text-amber-300";
+      } else {
+        nameEl.innerText = `${currentUserName} (CHC Operator)`;
+        iconEl.className = "fa-solid fa-tractor text-emerald-400";
+      }
+    }
+
+    // ==========================================
+    // TAB SWITCHER
+    // ==========================================
+    function switchTab(tabId) {
+      const farmerTab = document.getElementById('tab-farmer');
+      const operatorTab = document.getElementById('tab-operator');
+      const benchmarksTab = document.getElementById('tab-benchmarks');
+
+      const btnFarmer = document.getElementById('btn-tab-farmer');
+      const btnOperator = document.getElementById('btn-tab-operator');
+      const btnBenchmarks = document.getElementById('btn-tab-benchmarks');
+
+      farmerTab.classList.add('hidden');
+      operatorTab.classList.add('hidden');
+      benchmarksTab.classList.add('hidden');
+
+      const activeClass = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-[#2d6a4f] text-white shadow-inner border border-[#52b788]/40";
+      const inactiveClass = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-emerald-100 hover:bg-[#2d6a4f]/50 hover:text-white";
+
+      btnFarmer.className = inactiveClass;
+      btnOperator.className = inactiveClass;
+      btnBenchmarks.className = inactiveClass;
+
+      if (tabId === 'tab-farmer') {
+        farmerTab.classList.remove('hidden');
+        btnFarmer.className = activeClass;
+      } else if (tabId === 'tab-operator') {
+        operatorTab.classList.remove('hidden');
+        btnOperator.className = activeClass;
+      } else {
+        benchmarksTab.classList.remove('hidden');
+        btnBenchmarks.className = activeClass;
+      }
+    }
+
+    // ==========================================
+    // GPS & LOCATION TRACKING (FEATURE 2: STATE + GPS)
+    // ==========================================
+    const stateRegionalData = {
+      'Punjab': {
+        districts: ['Sangrur', 'Ludhiana', 'Patiala', 'Bathinda', 'Amritsar', 'Ferozepur', 'Jalandhar', 'Mansa'],
+        defaultDistrict: 'Sangrur',
+        defaultVillage: 'Sunam',
+        defaultPincode: '148028',
+        defaultLat: 30.1290,
+        defaultLon: 75.8010,
+        badgeText: 'Punjab Hub — Direct off-take pipelines active with Khanna Paper Mills & IOCL Panipat Refinery.',
+        offtakePrice: '₹1,950–₹2,100/t',
+        sowingDates: 'Oct 20 – Nov 10'
+      },
+      'Haryana': {
+        districts: ['Karnal', 'Panipat', 'Kurukshetra', 'Ambala', 'Kaithal', 'Yamunanagar', 'Hisar', 'Sonipat'],
+        defaultDistrict: 'Karnal',
+        defaultVillage: 'Taraori',
+        defaultPincode: '132116',
+        defaultLat: 29.7981,
+        defaultLon: 76.9295,
+        badgeText: 'Haryana Hub — Panipat IOCL Bio-Refinery & EverEnviro CBG Bio-Energy Corridor active.',
+        offtakePrice: '₹1,950–₹2,050/t',
+        sowingDates: 'Oct 25 – Nov 15'
+      },
+      'Uttar Pradesh': {
+        districts: ['Meerut', 'Muzaffarnagar', 'Saharanpur', 'Aligarh', 'Mathura', 'Bulandshahr', 'Baghpat'],
+        defaultDistrict: 'Muzaffarnagar',
+        defaultVillage: 'Khatauli',
+        defaultPincode: '251201',
+        defaultLat: 29.2800,
+        defaultLon: 77.7200,
+        badgeText: 'Western UP Hub — Multi-plot aggregation active across Saharanpur & Sugar Mill Cogeneration units.',
+        offtakePrice: '₹1,900–₹2,150/t',
+        sowingDates: 'Oct 28 – Nov 18'
+      },
+      'Rajasthan': {
+        districts: ['Sri Ganganagar', 'Hanumangarh', 'Kota', 'Baran', 'Bundi'],
+        defaultDistrict: 'Sri Ganganagar',
+        defaultVillage: 'Suratgarh',
+        defaultPincode: '335804',
+        defaultLat: 29.3200,
+        defaultLon: 73.9000,
+        badgeText: 'Rajasthan Canal Belt — Super Seeder moisture retention active for canal-irrigated wheat zones.',
+        offtakePrice: '₹1,850–₹2,000/t',
+        sowingDates: 'Nov 01 – Nov 20'
+      },
+      'Madhya Pradesh': {
+        districts: ['Hoshangabad', 'Sehore', 'Raisen', 'Jabalpur', 'Vidisha', 'Dewas'],
+        defaultDistrict: 'Hoshangabad',
+        defaultVillage: 'Itarsi',
+        defaultPincode: '461111',
+        defaultLat: 22.6100,
+        defaultLon: 77.7600,
+        badgeText: 'Central India Hub — Extended sowing windows for Sharbati & Durum wheat cultivars.',
+        offtakePrice: '₹1,800–₹1,950/t',
+        sowingDates: 'Nov 05 – Nov 25'
+      },
+      'Other': {
+        districts: ['Regional Agricultural Node', 'Central Zone', 'Northern Foothills'],
+        defaultDistrict: 'Regional Agricultural Node',
+        defaultVillage: 'Central Node',
+        defaultPincode: '100001',
+        defaultLat: 29.5000,
+        defaultLon: 76.5000,
+        badgeText: 'Northern Agronomic Zone — 10-day digital sowing schedule & Super Seeder cluster routing active.',
+        offtakePrice: '₹1,900–₹2,050/t',
+        sowingDates: 'Oct 25 – Nov 15'
+      }
+    };
+
+    function handleStateChange(selectedState) {
+      currentState = selectedState;
+      const config = stateRegionalData[selectedState] || stateRegionalData['Other'];
+
+      // Update district dropdown options
+      const distSelect = document.getElementById('field-district-select');
+      distSelect.innerHTML = config.districts.map(d => `<option value="${d}" ${d === config.defaultDistrict ? 'selected' : ''}>${d}</option>`).join('');
+      currentDistrict = config.defaultDistrict;
+
+      // Update village and pincode inputs
+      document.getElementById('field-village-input').value = config.defaultVillage;
+      currentVillage = config.defaultVillage;
+      document.getElementById('field-pincode-input').value = config.defaultPincode;
+      currentPincode = config.defaultPincode;
+
+      // Update lat/lon
+      currentLat = config.defaultLat;
+      currentLon = config.defaultLon;
+      document.getElementById('field-latlon-display').value = `${currentLat}° N, ${currentLon}° E`;
+
+      // Update regional context badge
+      const badgeText = document.getElementById('state-badge-text');
+      const offtakePrice = document.getElementById('state-offtake-price');
+      const sowingDates = document.getElementById('state-sowing-dates');
+      if (badgeText) badgeText.innerText = config.badgeText;
+      if (offtakePrice) offtakePrice.innerText = config.offtakePrice;
+      if (sowingDates) sowingDates.innerText = config.sowingDates;
+
+      saveLocationToBackend();
+      pollFieldLocation();
+    }
+
+    async function saveLocationToBackend() {
+      if (isApiOnline) {
+        try {
+          await fetch(`${API_BASE_URL}/location/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              state: currentState,
+              district: currentDistrict,
+              village: currentVillage,
+              pincode: currentPincode,
+              latitude: currentLat,
+              longitude: currentLon
+            })
+          });
+        } catch (err) {}
+      }
+    }
+
+    function detectLiveLocation() {
+      const btnText = document.getElementById('gps-btn-text');
+      btnText.innerText = "Locating via Satellite...";
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            currentLat = parseFloat(pos.coords.latitude.toFixed(4));
+            currentLon = parseFloat(pos.coords.longitude.toFixed(4));
+            document.getElementById('field-latlon-display').value = `${currentLat}° N, ${currentLon}° E`;
+            btnText.innerText = "GPS Fixed!";
+            setTimeout(() => { btnText.innerText = "Detect My Live GPS Location"; }, 2000);
+            saveLocationToBackend();
+            pollFieldLocation();
+          },
+          (err) => {
+            // High-precision agricultural fallback for Karnal
+            currentLat = 29.7995;
+            currentLon = 76.9312;
+            document.getElementById('field-latlon-display').value = `${currentLat}° N, ${currentLon}° E`;
+            btnText.innerText = "GPS Fixed (Agricultural Pin)";
+            setTimeout(() => { btnText.innerText = "Detect My Live GPS Location"; }, 2000);
+            saveLocationToBackend();
+            pollFieldLocation();
+          },
+          { timeout: 5000 }
+        );
+      } else {
+        btnText.innerText = "GPS Fixed (Standard)";
+      }
+    }
+
+    function recalculateLocation() {
+      const stateEl = document.getElementById('field-state-select');
+      if (stateEl) currentState = stateEl.value;
+      currentVillage = document.getElementById('field-village-input').value;
+      currentDistrict = document.getElementById('field-district-select').value;
+      currentPincode = document.getElementById('field-pincode-input').value;
+      saveLocationToBackend();
+      pollFieldLocation();
+    }
+
+    async function pollFieldLocation() {
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/location/track-field?state=${encodeURIComponent(currentState)}&village=${encodeURIComponent(currentVillage)}&district=${encodeURIComponent(currentDistrict)}&lat=${currentLat}&lon=${currentLon}`);
+          if (res.ok) {
+            const data = await res.json();
+            document.getElementById('tracking-machine-tag').innerText = data.machine_tag;
+            document.getElementById('tracking-status-headline').innerText = `${data.model} — ${data.distance_km} km away`;
+            document.getElementById('tracking-eta-timer').innerText = `${data.eta_minutes} MIN`;
+            document.getElementById('tracking-speed').innerText = `${data.speed_kmh} km/h`;
+            document.getElementById('tracking-subtext').innerHTML = `Assigned CHC: <strong>${data.chc_center}</strong> • Driver: <strong>${data.operator_name}</strong> (<a href="tel:${data.operator_phone}" class="text-[#2d6a4f] font-bold underline">${data.operator_phone}</a>)`;
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Fallback telemetry display
+      document.getElementById('tracking-machine-tag').innerText = "Super Seeder #PB-11-TURBO";
+      document.getElementById('tracking-status-headline').innerText = `Super Seeder Shaktiman 55 HP — 1.8 km away`;
+      document.getElementById('tracking-eta-timer').innerText = `14 MIN`;
+      document.getElementById('tracking-speed').innerText = `22 km/h`;
+    }
+
+    // ==========================================
+    // FARMER CALCULATIONS & SOWING ROUTER
+    // ==========================================
+    function handleAcresChange(val) {
+      currentAcres = parseFloat(val);
+      document.getElementById('acres-display').innerText = currentAcres.toFixed(1);
+      updateAllFarmerData();
+    }
+
+    function recalculateSowing() {
+      currentHarvestDate = document.getElementById('harvest-date-input').value;
+      currentVariety = document.getElementById('variety-select').value;
+      updateSowingTimeline();
+    }
+
+    function updateAllFarmerData() {
+      updateEconomicImpact();
+      updateSowingTimeline();
+    }
+
+    async function updateEconomicImpact() {
+      let impactData = null;
+
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/analytics/impact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              land_acres: currentAcres,
+              straw_yield_tons_per_acre: 2.2,
+              straw_price_per_ton: 1950.0,
+              is_cluster_pooled: true
+            })
+          });
+          if (res.ok) impactData = await res.json();
+        } catch (e) {}
+      }
+
+      if (!impactData) {
+        const strawTons = currentAcres * 2.2;
+        const grossRev = Math.round(strawTons * 1950);
+        const fertSaved = Math.round(currentAcres * 2300);
+        const poolSaved = Math.round(currentAcres * 800);
+        const netGain = grossRev + fertSaved + poolSaved;
+        const penalty = currentAcres < 2 ? 2500 : (currentAcres <= 5 ? 5000 : 15000);
+
+        impactData = {
+          total_straw_tons: strawTons.toFixed(1),
+          straw_cash_revenue: grossRev,
+          fertilizer_expense_saved: fertSaved,
+          machinery_pooling_savings: poolSaved,
+          net_farmer_gain: netGain,
+          burn_scenario_penalty_risk: penalty,
+          organic_carbon_retained_kg: Math.round(currentAcres * 1000)
+        };
+      }
+
+      document.getElementById('kpi-revenue').innerText = `₹${impactData.straw_cash_revenue.toLocaleString()}`;
+      document.getElementById('kpi-revenue-desc').innerText = `${impactData.total_straw_tons} Tons straw @ ₹1,950/Ton B2B off-take rate.`;
+      document.getElementById('kpi-fertilizer').innerText = `₹${impactData.fertilizer_expense_saved.toLocaleString()}`;
+      document.getElementById('kpi-carbon').innerText = `${impactData.organic_carbon_retained_kg.toLocaleString()} kg`;
+      document.getElementById('kpi-net-gain').innerText = `₹${impactData.net_farmer_gain.toLocaleString()}`;
+      document.getElementById('kpi-per-acre').innerText = `+₹${Math.round(impactData.net_farmer_gain / currentAcres).toLocaleString()}/acre`;
+      document.getElementById('ngt-penalty-text').innerText = `₹${impactData.burn_scenario_penalty_risk.toLocaleString()}`;
+      document.getElementById('biochar-credit-display').innerText = `+${(impactData.total_straw_tons * 0.1).toFixed(1)} Tons Biochar (${Math.round(impactData.total_straw_tons * 0.1 * 2500).toLocaleString()} kg CO₂e Offset)`;
+    }
+
+    async function updateSowingTimeline() {
+      let schedule = null;
+
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/sowing/schedule`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              land_acres: currentAcres,
+              harvest_date: currentHarvestDate,
+              paddy_variety: currentVariety
+            })
+          });
+          if (res.ok) schedule = await res.json();
+        } catch (e) {}
+      }
+
+      if (!schedule) {
+        const harvestDt = new Date(currentHarvestDate);
+        const deadlineDt = new Date(harvestDt);
+        deadlineDt.setDate(deadlineDt.getDate() + 10);
+        const today = new Date();
+        const diffDays = Math.ceil((deadlineDt - today) / (1000 * 60 * 60 * 24));
+        const isPusa = currentVariety === 'Pusa-44';
+
+        const addDays = (n) => {
+          const d = new Date(harvestDt);
+          d.setDate(d.getDate() + n);
+          return d.toISOString().split('T')[0];
+        };
+
+        schedule = {
+          wheat_sowing_deadline: deadlineDt.toISOString().split('T')[0],
+          days_remaining: diffDays,
+          window_status: diffDays > 5 ? "Optimal" : (diffDays >= 0 ? "Critical Alert" : "Window Closed"),
+          yield_loss_risk_per_day_pct: isPusa ? 1.45 : 1.05,
+          scientific_rationale: isPusa
+            ? "Pusa-44 is a long-duration cultivar (145–150 days) that matures late, leaving a razor-thin 10-day emergency window. Every day of delay past Nov 15 incurs a 35-40 kg/acre (1.45%) terminal wheat yield penalty due to heat stress."
+            : "PR-126 is a short-duration cultivar (120–123 days) from PAU that matures ~25 days earlier, allowing relaxed, orderly Super Seeder dispatch and optimal seedbed moisture retention.",
+          daily_schedule: [
+            { day_range: "Days 1–2", stage_title: "Harvest Logging & Cluster Matching", action_description: `Log combine exit. Measure straw moisture (<16%). Register ${currentAcres} acres in regional cluster pool.`, target_date: addDays(1), status: "Completed" },
+            { day_range: "Days 3–4", stage_title: "Route Aggregation", action_description: `AgriShift proximity router aggregates your ${currentAcres} acres into a 30+ acre contiguous route node.`, target_date: addDays(3), status: "In Progress" },
+            { day_range: "Days 5–6", stage_title: "Baling & Machinery Pooling", action_description: "High-density baler / mulcher prepares field in sequential pass, saving 40% machine transit waste.", target_date: addDays(5), status: "Pending" },
+            { day_range: "Days 7–8", stage_title: "Zero-Till Super Seeder Sowing", action_description: "55+ HP tractor-driven Super Seeder chops stubble, incorporates mulch, and drills wheat simultaneously.", target_date: addDays(7), status: "Pending" },
+            { day_range: "Day 10", stage_title: "Sowing Complete & SOC Lock", action_description: "Terminal deadline achieved with zero burning. Thermal mulch protects seedlings; +0.15% SOC locked.", target_date: addDays(9), status: "Pending" }
+          ]
+        };
+      }
+
+      const badgeBox = document.getElementById('deadline-badge-container');
+      const isOptimal = schedule.window_status === 'Optimal';
+      const isCritical = schedule.window_status === 'Critical Alert';
+
+      badgeBox.innerHTML = `
+        <div class="px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center space-x-2 ${
+          isOptimal ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+          isCritical ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse' :
+          'bg-red-50 text-red-800 border-red-300'
+        }">
+          <i class="fa-solid fa-clock"></i>
+          <span>${schedule.days_remaining >= 0 ? `${schedule.days_remaining} Days to Deadline (${schedule.wheat_sowing_deadline})` : `Window Closed (${schedule.wheat_sowing_deadline})`}</span>
+        </div>
+      `;
+
+      document.getElementById('variety-rationale-text').innerHTML = `
+        <strong>Agronomic Risk Model (${currentVariety}):</strong> ${schedule.scientific_rationale}
+        <span class="font-bold text-red-700 ml-1">Delay Penalty: -${schedule.yield_loss_risk_per_day_pct}% yield/day.</span>
+      `;
+
+      const timelineBox = document.getElementById('timeline-cards-container');
+      timelineBox.innerHTML = schedule.daily_schedule.map((step) => {
+        const isDone = step.status === "Completed";
+        const isInProgress = step.status === "In Progress";
+
+        return `
+          <div class="p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+            isDone ? 'bg-emerald-50/60 border-emerald-300' :
+            isInProgress ? 'bg-amber-50/80 border-amber-400 shadow-sm ring-1 ring-amber-300' :
+            'bg-white border-gray-200 opacity-80'
+          }">
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  isDone ? 'bg-emerald-200 text-emerald-900' :
+                  isInProgress ? 'bg-amber-400 text-black font-extrabold' :
+                  'bg-gray-100 text-gray-600'
+                }">${step.day_range}</span>
+                ${isDone ? '<i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>' :
+                  isInProgress ? '<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>' :
+                  '<i class="fa-regular fa-circle text-gray-300 text-xs"></i>'}
+              </div>
+              <h4 class="font-bold text-xs text-[#1b4332] leading-snug">${step.stage_title}</h4>
+              <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">${step.action_description}</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-gray-200/60 text-[10px] text-gray-500 font-mono flex justify-between">
+              <span>Date:</span>
+              <strong class="text-gray-700">${step.target_date}</strong>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // MACHINERY CLUSTERS (MODULE 2)
+    // ==========================================
+    async function loadMachineryClusters() {
+      let clusters = null;
+
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/machinery/clusters`);
+          if (res.ok) clusters = await res.json();
+        } catch (e) {}
+      }
+
+      if (!clusters || clusters.length === 0) clusters = fallbackClusters;
+
+      const container = document.getElementById('machinery-cards-container');
+      container.innerHTML = clusters.map(c => {
+        const isMatched = c.status === 'matched';
+        return `
+          <div class="p-5 rounded-2xl border border-[#2d6a4f]/20 bg-white shadow-sm flex flex-col justify-between hover:border-[#2d6a4f]/50 transition-all">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-mono font-bold text-xs bg-gray-100 text-[#1b4332] px-2 py-0.5 rounded border border-gray-200">
+                  ${c.cluster_code}
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                  isMatched ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }">
+                  ${isMatched ? 'Matched Contiguous 30+' : 'Forming Cluster'}
+                </span>
+              </div>
+
+              <h4 class="font-extrabold text-sm text-[#1b4332]">${c.machine_name}</h4>
+              <p class="text-[11px] text-gray-500 mt-0.5"><i class="fa-solid fa-warehouse mr-1 text-gray-400"></i>${c.chc_name}</p>
+
+              <div class="grid grid-cols-2 gap-2 my-3 p-2 bg-[#f4f6f0] rounded-xl text-center text-[11px]">
+                <div>
+                  <span class="text-gray-400 text-[10px]">Acreage Pooled:</span>
+                  <div class="font-bold text-[#1b4332]">${c.total_acres} Acres</div>
+                </div>
+                <div>
+                  <span class="text-gray-400 text-[10px]">Cluster Rate:</span>
+                  <div class="font-bold text-[#2d6a4f]">₹${c.rental_rate_per_acre} / ac</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] text-emerald-700 font-semibold mb-2">
+                <i class="fa-solid fa-leaf mr-1"></i> Cuts 40% Transit Waste (${c.diesel_saved_liters || 95} L Diesel Saved)
+              </div>
+              <button
+                onclick="bookClusterDispatch(${c.id}, '${c.cluster_code}', '${c.chc_name}', ${c.rental_rate_per_acre})"
+                class="w-full bg-[#2d6a4f] hover:bg-[#1b4332] text-white py-2 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all shadow-sm"
+              >
+                <i class="fa-solid fa-bolt text-amber-300"></i>
+                <span>Book Cluster Dispatch</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // INDUSTRIAL BIOMASS MARKETPLACE (MODULE 3)
+    // ==========================================
+    async function loadIndustrialBuyers() {
+      let buyers = null;
+
+      if (isApiOnline) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/marketplace/buyers`);
+          if (res.ok) buyers = await res.json();
+        } catch (e) {}
+      }
+
+      if (!buyers || buyers.length === 0) buyers = fallbackBuyers;
+
+      const container = document.getElementById('buyers-cards-container');
+      container.innerHTML = buyers.map(b => `
+        <div class="p-5 rounded-2xl border border-[#2d6a4f]/20 bg-white shadow-sm flex flex-col justify-between hover:border-[#2d6a4f]/50 transition-all">
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                ${b.industry_type}
+              </span>
+              <span class="text-xs font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                ₹${b.offtake_price_per_ton} / Ton
+              </span>
+            </div>
+
+            <h4 class="font-black text-sm text-[#1b4332] mt-2">${b.plant_name}</h4>
+            <div class="text-[11px] text-gray-500 mt-0.5">
+              <i class="fa-solid fa-location-dot text-gray-400 mr-1"></i> ${b.location}
+            </div>
+
+            <div class="my-3 pt-2 border-t border-gray-100 text-[11px] space-y-1 text-gray-600">
+              <div class="flex justify-between">
+                <span class="text-gray-400">Daily Demand:</span>
+                <strong class="text-gray-800">${b.daily_intake_tons} Tons / Day</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">Straw Quality:</span>
+                <strong class="text-emerald-700">Moisture &lt; 15%</strong>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="p-2 bg-[#f4f6f0] rounded-lg text-[10px] text-gray-700 mb-2">
+              🌱 <strong>Byproduct Loop:</strong> ${b.biochar_return_ratio}
+            </div>
+            <button
+              onclick="sellStrawBales(${b.id}, '${b.plant_name}', ${b.offtake_price_per_ton})"
+              class="w-full bg-[#1b4332] hover:bg-[#081c15] text-white py-2 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all shadow-sm"
+            >
+              <i class="fa-solid fa-file-contract text-emerald-300"></i>
+              <span>Sell Straw Bales</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function sellStrawBales(buyerId, buyerName, pricePerTon) {
+      const tons = (currentAcres * 2.2).toFixed(1);
+      const totalPayout = Math.round(tons * pricePerTon);
+      const biocharTons = (tons * 0.1).toFixed(1);
+
+      if (isApiOnline) {
+        try {
+          await fetch(`${API_BASE_URL}/marketplace/sell`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              buyer_id: buyerId,
+              farmer_name: currentUserName,
+              acres: currentAcres,
+              village: currentVillage,
+              district: currentDistrict
+            })
+          });
+        } catch (e) {}
+      }
+
+      document.getElementById('modal-title').innerText = "Biomass Straw Contract Executed";
+      document.getElementById('modal-cluster-code').innerText = `Off-Taker: ${buyerName}`;
+      document.getElementById('modal-chc-name').innerText = `${tons} Tons High-Density Straw Bales (Moisture < 15%)`;
+      document.getElementById('modal-rental-rate').innerText = `Rate: ₹${pricePerTon}/Ton (Total: ₹${totalPayout.toLocaleString()})`;
+      document.getElementById('modal-cash-saved').innerText = `Direct Account Payout within 24h`;
+      document.getElementById('modal-fuel-saved').innerText = `+${biocharTons} Tons Biochar Soil Voucher Generated`;
+
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    // ==========================================
+    // OPERATOR HUB LOGIC (FEATURE 3)
+    // ==========================================
+    function handleRateSlider(val) {
+      operatorRentalRate = parseFloat(val);
+      document.getElementById('rate-display-val').innerText = operatorRentalRate;
+
+      const alertBox = document.getElementById('rate-alert-box');
+      const alertText = document.getElementById('rate-alert-text');
+
+      if (operatorRentalRate > 1500) {
+        alertBox.className = "p-4 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex items-start space-x-3";
+        alertText.innerHTML = `<strong>Surge-Cap Warning:</strong> ₹${operatorRentalRate}/acre exceeds recommended cluster cap of ₹1,500/acre. Smallholders may route to competing nearby CHCs.`;
+      } else {
+        alertBox.className = "p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 flex items-start space-x-3";
+        alertText.innerHTML = `<strong>Competitive Rate Locked:</strong> ₹${operatorRentalRate}/acre matches optimal cluster aggregation priority in ${currentDistrict}.`;
+      }
+
+      if (isApiOnline) {
+        fetch(`${API_BASE_URL}/operator/update-rate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rental_rate_per_acre: operatorRentalRate })
+        }).catch(() => {});
+      }
+    }
+
+    function renderOperatorFleet() {
+      const container = document.getElementById('operator-fleet-container');
+      document.getElementById('fleet-count-display').innerText = `${operatorFleet.length} Implements`;
+
+      container.innerHTML = operatorFleet.map(m => `
+        <div class="p-4 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                m.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+              }">${m.status}</span>
+              <span class="text-xs font-mono font-bold text-gray-500">${m.tractor_hp_req} HP</span>
+            </div>
+            <h4 class="font-bold text-sm text-[#1b4332]">${m.model_name}</h4>
+            <div class="text-[11px] text-gray-500 mt-1">${m.machine_type}</div>
+            <div class="my-2 py-1.5 border-t border-gray-100 text-[11px] flex justify-between">
+              <span class="text-gray-400">Daily Capacity:</span>
+              <strong class="text-gray-800">${m.daily_capacity_acres} Ac / Day</strong>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-gray-100 flex justify-between items-center text-xs">
+            <span class="text-gray-500">Rental Rate:</span>
+            <strong class="text-[#2d6a4f]">₹${m.rental_rate_per_acre}/ac</strong>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderOperatorRequests() {
+      const container = document.getElementById('operator-requests-container');
+      container.innerHTML = clusterRequests.map(r => {
+        const isDispatched = r.status === 'dispatched';
+        return `
+          <div class="p-4 rounded-2xl border transition-all ${
+            isDispatched ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-white border-[#2d6a4f]/30 shadow-sm'
+          } flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-mono font-bold text-xs bg-gray-100 text-[#1b4332] px-2 py-0.5 rounded">
+                  Cluster #${r.cluster_id}
+                </span>
+                <span class="font-black text-sm text-[#1b4332]">${r.cluster_name}</span>
+                <span class="badge-pill ${isDispatched ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} text-[10px]">
+                  ${isDispatched ? 'Dispatched' : r.urgency}
+                </span>
+              </div>
+              <p class="text-xs text-gray-600 mt-1">
+                📍 <strong>${r.region}</strong> • ${r.contiguous_acres} Contiguous Acres • ${r.farmer_count} Pooled Smallholders
+              </p>
+              <div class="text-[11px] text-gray-500 mt-0.5">
+                Target Slot: <strong class="text-gray-800">${r.target_date}</strong> • Estimated Fuel Waste Cut: <strong>${r.diesel_savings_liters || 94} L</strong>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 shrink-0">
+              <div class="text-right">
+                <div class="text-[10px] text-gray-400 font-semibold uppercase">Cluster Revenue:</div>
+                <div class="text-base font-black text-[#2d6a4f]">₹${r.estimated_payout_inr.toLocaleString()}</div>
+              </div>
+
+              ${!isDispatched ? `
+                <button
+                  onclick="acceptClusterDispatch(${r.cluster_id})"
+                  class="bg-[#2d6a4f] hover:bg-[#1b4332] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
+                >
+                  Accept & Dispatch
+                </button>
+              ` : `
+                <span class="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1">
+                  <i class="fa-solid fa-check"></i> <span>Tractor On Route</span>
+                </span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function acceptClusterDispatch(clusterId) {
+      const target = clusterRequests.find(c => c.cluster_id === clusterId);
+      if (target) {
+        target.status = 'dispatched';
+        renderOperatorRequests();
+
+        if (isApiOnline) {
+          try {
+            await fetch(`${API_BASE_URL}/operator/accept-cluster`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cluster_id: clusterId, assigned_machine_id: 1 })
+            });
+          } catch (e) {}
+        }
+
+        // Show Dispatch Acknowledgment
+        document.getElementById('modal-title').innerText = "Tractor Fleet Dispatched!";
+        document.getElementById('modal-cluster-code').innerText = target.cluster_name;
+        document.getElementById('modal-chc-name').innerText = `Location: ${target.region}`;
+        document.getElementById('modal-rental-rate').innerText = `${target.contiguous_acres} Contiguous Acres Route`;
+        document.getElementById('modal-cash-saved').innerText = `Revenue: ₹${target.estimated_payout_inr.toLocaleString()}`;
+        document.getElementById('modal-fuel-saved').innerText = `${target.diesel_savings_liters || 94} L Diesel Saved from Pooling`;
+        document.getElementById('booking-modal').classList.remove('hidden');
+      }
+    }
+
+    function openAddMachineModal() {
+      document.getElementById('add-machine-modal').classList.remove('hidden');
+    }
+
+    function closeAddMachineModal() {
+      document.getElementById('add-machine-modal').classList.add('hidden');
+    }
+
+    async function submitAddMachine(e) {
+      e.preventDefault();
+      const type = document.getElementById('new-machine-type').value;
+      const model = document.getElementById('new-machine-model').value;
+      const hp = parseInt(document.getElementById('new-machine-hp').value);
+      const cap = parseFloat(document.getElementById('new-machine-capacity').value);
+      const rate = parseFloat(document.getElementById('new-machine-rate').value);
+
+      const newMachine = {
+        id: operatorFleet.length + 1,
+        machine_type: type,
+        model_name: model,
+        tractor_hp_req: hp,
+        daily_capacity_acres: cap,
+        rental_rate_per_acre: rate,
+        status: "available"
+      };
+
+      operatorFleet.push(newMachine);
+      renderOperatorFleet();
+      closeAddMachineModal();
+
+      if (isApiOnline) {
+        try {
+          await fetch(`${API_BASE_URL}/operator/add-machine`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newMachine)
+          });
+        } catch (err) {}
+      }
+    }
+
+    // ==========================================
+    // OPERATOR CLUSTER POOLING VISUALIZER (FEATURE 2)
+    // ==========================================
+    const topologyClusters = {
+      'karnal-taraori': {
+        id: 'karnal-taraori',
+        name: 'Karnal Taraori Node #042',
+        meta: '27.5 Ac Contiguous • 7 Smallholders',
+        chcName: 'Karnal Kisan Vikas Sahayata CHC',
+        machineAssigned: 'Tractor Hub Origin • 55 HP Shaktiman Super Seeder',
+        totalAcres: 27.5,
+        payoutInr: 33000,
+        dieselSaved: 90.8,
+        passDesc: 'P1 (4.0 Ac) → P2 (3.5 Ac) → P3 (5.0 Ac) → P4 (3.0 Ac) → P5 (4.5 Ac) → P6 (4.0 Ac) → P7 (3.5 Ac)',
+        parcels: [
+          { id: 'P1', farmer: 'Harjit Singh', acres: 4.0, crop: 'PR-126', status: 'Sown & Mulched' },
+          { id: 'P2', farmer: 'Gurdev Singh', acres: 3.5, crop: 'PR-126', status: 'In Progress' },
+          { id: 'P3', farmer: 'Amarjit Kaur', acres: 5.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P4', farmer: 'Sukhwinder S.', acres: 3.0, crop: 'Pusa-44', status: 'Queued' },
+          { id: 'P5', farmer: 'Baldev Singh', acres: 4.5, crop: 'PR-126', status: 'Queued' },
+          { id: 'P6', farmer: 'Manpreet Singh', acres: 4.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P7', farmer: 'Jaswant Singh', acres: 3.5, crop: 'PR-126', status: 'Queued' }
+        ]
+      },
+      'sangrur-west': {
+        id: 'sangrur-west',
+        name: 'Sangrur West Ring #101',
+        meta: '32.0 Ac Contiguous • 8 Smallholders',
+        chcName: 'Sunam Kisan Seva Center, Sangrur',
+        machineAssigned: 'Tractor Hub Origin • 60 HP Super Seeder Turbo (PB-14)',
+        totalAcres: 32.0,
+        payoutInr: 38400,
+        dieselSaved: 105.6,
+        passDesc: 'P1 (4.5 Ac) → P2 (3.5 Ac) → P3 (4.0 Ac) → P4 (3.5 Ac) → P5 (4.5 Ac) → P6 (4.0 Ac) → P7 (4.0 Ac) → P8 (4.0 Ac)',
+        parcels: [
+          { id: 'P1', farmer: 'Jagjit Singh', acres: 4.5, crop: 'PR-126', status: 'Sown & Mulched' },
+          { id: 'P2', farmer: 'Kuldeep Dhillon', acres: 3.5, crop: 'PR-126', status: 'In Progress' },
+          { id: 'P3', farmer: 'Davinder Singh', acres: 4.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P4', farmer: 'Pritam Singh', acres: 3.5, crop: 'PR-126', status: 'Queued' },
+          { id: 'P5', farmer: 'Rupinder Kaur', acres: 4.5, crop: 'PR-126', status: 'Queued' },
+          { id: 'P6', farmer: 'Paramjit Singh', acres: 4.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P7', farmer: 'Hardev Singh', acres: 4.0, crop: 'Pusa-44', status: 'Queued' },
+          { id: 'P8', farmer: 'Bikramjeet S.', acres: 4.0, crop: 'PR-126', status: 'Queued' }
+        ]
+      },
+      'panipat-corridor': {
+        id: 'panipat-corridor',
+        name: 'Panipat Refinery Corridor #103',
+        meta: '29.0 Ac Contiguous • 6 Smallholders',
+        chcName: 'Panipat Krishi Cooperative Depot',
+        machineAssigned: 'Tractor Hub Origin • Baler + Shredder Combo (HR-06)',
+        totalAcres: 29.0,
+        payoutInr: 34800,
+        dieselSaved: 95.7,
+        passDesc: 'P1 (5.0 Ac) → P2 (4.5 Ac) → P3 (5.0 Ac) → P4 (4.5 Ac) → P5 (5.0 Ac) → P6 (5.0 Ac)',
+        parcels: [
+          { id: 'P1', farmer: 'Naresh Kumar', acres: 5.0, crop: 'PR-126', status: 'Sown & Mulched' },
+          { id: 'P2', farmer: 'Dharamvir S.', acres: 4.5, crop: 'PR-126', status: 'In Progress' },
+          { id: 'P3', farmer: 'Virender Tyagi', acres: 5.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P4', farmer: 'Satish Chand', acres: 4.5, crop: 'PR-126', status: 'Queued' },
+          { id: 'P5', farmer: 'Joginder Malik', acres: 5.0, crop: 'PR-126', status: 'Queued' },
+          { id: 'P6', farmer: 'Rameshwar Dayal', acres: 5.0, crop: 'PR-126', status: 'Queued' }
+        ]
+      }
+    };
+
+    let currentTopoId = 'karnal-taraori';
+    let isFragmentedView = false;
+
+    function selectTopologyCluster(clusterId) {
+      currentTopoId = clusterId;
+      ['karnal', 'sangrur', 'panipat'].forEach(key => {
+        const btn = document.getElementById(`btn-topo-${key}`);
+        if (btn) {
+          if (clusterId.includes(key)) {
+            btn.className = "px-3 py-1.5 rounded-lg font-bold transition-all bg-[#2d6a4f] text-white shadow-sm";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg font-bold transition-all text-gray-600 hover:text-gray-900";
+          }
+        }
+      });
+
+      const cluster = topologyClusters[clusterId];
+      if (!cluster) return;
+
+      document.getElementById('topo-cluster-title').innerText = cluster.name;
+      document.getElementById('topo-cluster-meta').innerText = cluster.meta;
+      document.getElementById('topo-chc-name').innerText = cluster.chcName;
+      document.getElementById('topo-machine-assigned').innerText = cluster.machineAssigned;
+      document.getElementById('topo-payout-val').innerText = `₹${cluster.payoutInr.toLocaleString()}`;
+      document.getElementById('topo-pass-desc').innerText = cluster.passDesc;
+
+      const simBar = document.getElementById('topo-sim-bar-container');
+      if (simBar) simBar.classList.add('hidden');
+
+      renderTopologyParcels();
+    }
+
+    function toggleTransitMode() {
+      isFragmentedView = !isFragmentedView;
+      const overlay = document.getElementById('fragmented-warning-overlay');
+      const toggleBtnText = document.getElementById('toggle-mode-text');
+
+      if (isFragmentedView) {
+        overlay.classList.remove('hidden');
+        toggleBtnText.innerText = "View Contiguous Pooled Route";
+      } else {
+        overlay.classList.add('hidden');
+        toggleBtnText.innerText = "View Fragmented Deadhead Trips";
+      }
+
+      renderTopologyParcels();
+    }
+
+    function renderTopologyParcels() {
+      const cluster = topologyClusters[currentTopoId];
+      if (!cluster) return;
+
+      const container = document.getElementById('topo-parcels-grid');
+      if (!container) return;
+
+      container.innerHTML = cluster.parcels.map((p) => {
+        const isCurrent = p.status === 'In Progress';
+        const isDone = p.status === 'Sown & Mulched';
+
+        return `
+          <div class="p-3 rounded-xl border transition-all ${
+            isFragmentedView ? 'bg-red-950/40 border-dashed border-red-500/70 shadow-inner' :
+            (isCurrent ? 'bg-amber-950/60 border-2 border-amber-400 ring-2 ring-amber-400/50 shadow-md scale-[1.02]' :
+             isDone ? 'bg-emerald-900/50 border border-emerald-400/80' :
+             'bg-emerald-950/30 border border-emerald-600/40 opacity-85')
+          } flex flex-col justify-between min-h-[96px] text-xs">
+            <div>
+              <div class="flex justify-between items-center text-[10px] mb-1">
+                <span class="font-mono font-bold ${isFragmentedView ? 'text-red-300' : 'text-amber-300'}">${p.id}</span>
+                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                  isDone ? 'bg-emerald-400/20 text-emerald-300' :
+                  isCurrent ? 'bg-amber-400 text-black font-extrabold animate-pulse' :
+                  'bg-white/10 text-gray-300'
+                }">${p.crop}</span>
+              </div>
+              <div class="font-extrabold text-white text-[11px] truncate">${p.farmer}</div>
+              <div class="text-[10px] text-gray-300 font-mono">${p.acres} Contiguous Ac</div>
+            </div>
+
+            <div class="mt-2 pt-1 border-t ${isFragmentedView ? 'border-red-500/30' : 'border-white/10'} flex justify-between items-center text-[9px]">
+              <span class="${isDone ? 'text-emerald-300 font-bold' : isCurrent ? 'text-amber-300 font-bold' : 'text-gray-400'}">
+                ${isFragmentedView ? '🚨 Deadhead Exit' : p.status}
+              </span>
+              ${isCurrent ? '<i class="fa-solid fa-tractor text-amber-400 animate-bounce"></i>' : (isDone ? '<i class="fa-solid fa-check text-emerald-400"></i>' : '<i class="fa-solid fa-hourglass-start text-gray-500"></i>')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function simulateTractorRun() {
+      const cluster = topologyClusters[currentTopoId];
+      if (!cluster) return;
+
+      const barContainer = document.getElementById('topo-sim-bar-container');
+      const bar = document.getElementById('topo-sim-progress');
+      const percentText = document.getElementById('topo-sim-percent');
+      barContainer.classList.remove('hidden');
+
+      let currentStep = 0;
+      const totalSteps = cluster.parcels.length;
+
+      // Reset parcels
+      cluster.parcels.forEach((p, i) => {
+        p.status = i === 0 ? 'In Progress' : 'Queued';
+      });
+      renderTopologyParcels();
+
+      const interval = setInterval(() => {
+        currentStep++;
+        const pct = Math.min(100, Math.round((currentStep / totalSteps) * 100));
+        const clearedAcres = ((cluster.totalAcres || 27.5) * (pct / 100)).toFixed(1);
+
+        bar.style.width = `${pct}%`;
+        percentText.innerText = `${pct}% (${clearedAcres} / ${cluster.totalAcres || 27.5} Acres Cleared)`;
+
+        // Update parcels status
+        cluster.parcels.forEach((p, i) => {
+          if (i < currentStep) p.status = 'Sown & Mulched';
+          else if (i === currentStep) p.status = 'In Progress';
+          else p.status = 'Queued';
+        });
+        renderTopologyParcels();
+
+        if (currentStep >= totalSteps) {
+          clearInterval(interval);
+          percentText.innerText = `100% (${cluster.totalAcres || 27.5} Acres Sown with Zero Transit Waste!)`;
+        }
+      }, 600);
+    }
+
+    // ==========================================
+    // MODAL CONTROL
+    // ==========================================
+    function bookClusterDispatch(clusterId, clusterCode, chcName, rentalRate) {
+      if (isApiOnline) {
+        fetch(`${API_BASE_URL}/machinery/book-cluster/${clusterId}`, { method: 'POST' }).catch(() => {});
+      }
+
+      document.getElementById('modal-title').innerText = "Super Seeder Fleet Allocated";
+      document.getElementById('modal-cluster-code').innerText = `Assigned Route Cluster: ${clusterCode}`;
+      document.getElementById('modal-chc-name').innerText = chcName;
+      document.getElementById('modal-rental-rate').innerText = `₹${rentalRate} / Acre (Pooled Rate)`;
+      document.getElementById('modal-cash-saved').innerText = `₹${Math.round(currentAcres * 800).toLocaleString()} (Saved ₹800/ac)`;
+      document.getElementById('modal-fuel-saved').innerText = `${(currentAcres * 3.3).toFixed(1)} Liters Diesel Saved`;
+
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
